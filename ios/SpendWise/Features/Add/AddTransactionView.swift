@@ -5,49 +5,10 @@ import SwiftUI
 struct AddTransactionView: View {
     @Environment(SessionStore.self) private var session
     @Environment(\.dismiss) private var dismiss
-
-    @State private var txType: TxType = .expense
-    @State private var amountText = ""
-    @State private var merchant = ""
-    @State private var date = Date()
-    @State private var paymentMethod = "UPI · GPay"
-    @State private var categories: [Category] = []
-    @State private var selectedCategoryId: String?
-    @State private var isAddingCategory = false
-    @State private var newCategoryName = ""
-    @State private var isSaving = false
-    @State private var errorMessage: String?
+    @Bindable private var model = AddTransactionViewModel()
 
     @FocusState private var amountFocused: Bool
     @FocusState private var newCategoryFocused: Bool
-
-    private static let paymentMethods = [
-        "UPI · GPay", "UPI · PhonePe", "Credit card",
-        "Debit card", "Cash", "Bank transfer"
-    ]
-
-    private enum TxType: String, CaseIterable, Identifiable {
-        case expense, income
-
-        var id: String { rawValue }
-
-        var label: String {
-            switch self {
-            case .expense: return "Expense"
-            case .income: return "Income"
-            }
-        }
-    }
-
-    private var amountValue: Double? {
-        Double(amountText.replacingOccurrences(of: ",", with: ""))
-    }
-
-    private var isValid: Bool {
-        guard let amount = amountValue, amount > 0 else { return false }
-        guard !merchant.trimmingCharacters(in: .whitespaces).isEmpty else { return false }
-        return selectedCategoryId != nil
-    }
 
     var body: some View {
         NavigationStack {
@@ -58,7 +19,7 @@ struct AddTransactionView: View {
                     detailsCard
                     categorySection
 
-                    if let errorMessage {
+                    if let errorMessage = model.errorMessage {
                         Text(errorMessage)
                             .font(.footnote.weight(.semibold))
                             .foregroundStyle(Emerald.danger)
@@ -70,11 +31,11 @@ struct AddTransactionView: View {
                 .padding(.bottom, 16)
             }
             .background(Emerald.background)
-            .navigationTitle("Add")
+            .navigationTitle(Strings.Add.title)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
-                    Button("Cancel") { dismiss() }
+                    Button(Strings.Common.cancel) { dismiss() }
                         .foregroundStyle(Emerald.primary)
                 }
             }
@@ -85,7 +46,7 @@ struct AddTransactionView: View {
                     .background(.thinMaterial)
             }
             .task {
-                await loadCategories()
+                await model.loadCategories(api: session.api)
             }
             .onAppear {
                 amountFocused = true
@@ -99,15 +60,15 @@ struct AddTransactionView: View {
         HStack(spacing: 0) {
             ForEach(TxType.allCases) { type in
                 Button {
-                    txType = type
+                    model.txType = type
                 } label: {
                     Text(type.label)
-                        .font(.subheadline.weight(txType == type ? .bold : .medium))
-                        .foregroundStyle(txType == type ? Emerald.text : Emerald.text3)
+                        .font(.subheadline.weight(model.txType == type ? .bold : .medium))
+                        .foregroundStyle(model.txType == type ? Emerald.text : Emerald.text3)
                         .frame(maxWidth: .infinity)
                         .frame(height: 34)
                         .background {
-                            if txType == type {
+                            if model.txType == type {
                                 RoundedRectangle(cornerRadius: 11)
                                     .fill(.white)
                                     .shadow(color: .black.opacity(0.08), radius: 3, y: 1)
@@ -120,7 +81,7 @@ struct AddTransactionView: View {
         .padding(2)
         .background(Emerald.track)
         .clipShape(.rect(cornerRadius: 13))
-        .animation(.easeInOut(duration: 0.15), value: txType)
+        .animation(.easeInOut(duration: 0.15), value: model.txType)
     }
 
     // MARK: - Amount
@@ -130,7 +91,7 @@ struct AddTransactionView: View {
             Text("₹")
                 .font(.system(size: 30, weight: .semibold, design: .rounded))
                 .foregroundStyle(Emerald.primary)
-            TextField("0", text: $amountText)
+            TextField("0", text: $model.amountText)
                 .keyboardType(.decimalPad)
                 .font(.system(size: 40, weight: .bold, design: .rounded))
                 .foregroundStyle(Emerald.primary)
@@ -147,26 +108,26 @@ struct AddTransactionView: View {
 
     private var detailsCard: some View {
         VStack(spacing: 0) {
-            detailRow("Merchant") {
-                TextField("Where did you spend?", text: $merchant)
+            detailRow(Strings.Add.merchantLabel) {
+                TextField(Strings.Add.merchantPlaceholder, text: $model.merchant)
                     .font(.subheadline.weight(.semibold))
                     .multilineTextAlignment(.trailing)
             }
             Divider().padding(.leading, 15)
-            detailRow("Date") {
-                DatePicker("", selection: $date, displayedComponents: .date)
+            detailRow(Strings.Add.dateLabel) {
+                DatePicker("", selection: $model.date, displayedComponents: .date)
                     .datePickerStyle(.compact)
                     .labelsHidden()
             }
             Divider().padding(.leading, 15)
-            detailRow("Payment") {
+            detailRow(Strings.Add.paymentLabel) {
                 Menu {
-                    ForEach(Self.paymentMethods, id: \.self) { method in
-                        Button(method) { paymentMethod = method }
+                    ForEach(Strings.Add.paymentMethods, id: \.self) { method in
+                        Button(method) { model.paymentMethod = method }
                     }
                 } label: {
                     HStack(spacing: 4) {
-                        Text(paymentMethod)
+                        Text(model.paymentMethod)
                             .font(.subheadline)
                             .foregroundStyle(Emerald.text)
                         Image(systemName: "chevron.up.chevron.down")
@@ -196,30 +157,30 @@ struct AddTransactionView: View {
 
     private var categorySection: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text("CATEGORY")
+            Text(Strings.Add.categoryHeader)
                 .font(.caption.weight(.semibold))
                 .foregroundStyle(Emerald.text5)
                 .padding(.leading, 4)
 
             LazyVGrid(columns: [GridItem(.adaptive(minimum: 100), spacing: 8)], spacing: 8) {
-                ForEach(categories) { category in
+                ForEach(model.categories) { category in
                     categoryChip(category)
                 }
                 newCategoryChip
             }
 
-            if isAddingCategory {
+            if model.isAddingCategory {
                 newCategoryEntry
             }
         }
-        .animation(.easeInOut(duration: 0.2), value: isAddingCategory)
+        .animation(.easeInOut(duration: 0.2), value: model.isAddingCategory)
     }
 
     private func categoryChip(_ category: Category) -> some View {
         let color = Color(hexString: category.color)
-        let isSelected = selectedCategoryId == category.id
+        let isSelected = model.selectedCategoryId == category.id
         return Button {
-            selectedCategoryId = category.id
+            model.selectCategory(category.id)
         } label: {
             HStack(spacing: 6) {
                 Circle()
@@ -245,13 +206,13 @@ struct AddTransactionView: View {
 
     private var newCategoryChip: some View {
         Button {
-            isAddingCategory = true
+            model.isAddingCategory = true
             newCategoryFocused = true
         } label: {
             HStack(spacing: 6) {
                 Image(systemName: "plus")
                     .font(.system(size: 12, weight: .bold))
-                Text("New")
+                Text(Strings.Add.newCategory)
                     .font(.system(size: 12.5, weight: .bold))
             }
             .foregroundStyle(Emerald.text3)
@@ -270,22 +231,22 @@ struct AddTransactionView: View {
 
     private var newCategoryEntry: some View {
         HStack(spacing: 8) {
-            TextField("New category name", text: $newCategoryName)
+            TextField(Strings.Add.newCategoryPlaceholder, text: $model.newCategoryName)
                 .focused($newCategoryFocused)
                 .padding(.horizontal, 14)
                 .frame(height: 44)
-                .background(Color(hex: 0xF6FBF9))
+                .background(Emerald.inputBg)
                 .clipShape(.rect(cornerRadius: 11))
                 .overlay {
                     RoundedRectangle(cornerRadius: 11)
                         .strokeBorder(Emerald.primary, lineWidth: 1.5)
                 }
-                .onSubmit { addCategory() }
+                .onSubmit { Task { await model.addCategory(api: session.api) } }
 
             Button {
-                addCategory()
+                Task { await model.addCategory(api: session.api) }
             } label: {
-                Text("Add")
+                Text(Strings.Add.addButton)
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(.white)
                     .padding(.horizontal, 18)
@@ -293,11 +254,11 @@ struct AddTransactionView: View {
                     .background(Emerald.primary)
                     .clipShape(.rect(cornerRadius: 11))
             }
-            .disabled(newCategoryName.trimmingCharacters(in: .whitespaces).isEmpty)
+            .disabled(model.newCategoryName.trimmingCharacters(in: .whitespaces).isEmpty)
 
-            Button("Cancel") {
-                isAddingCategory = false
-                newCategoryName = ""
+            Button(Strings.Common.cancel) {
+                model.isAddingCategory = false
+                model.newCategoryName = ""
             }
             .font(.subheadline)
             .foregroundStyle(Emerald.text3)
@@ -308,9 +269,13 @@ struct AddTransactionView: View {
 
     private var saveButton: some View {
         Button {
-            save()
+            Task {
+                if await model.save(api: session.api) {
+                    dismiss()
+                }
+            }
         } label: {
-            Text(isSaving ? "Saving…" : "Save Transaction")
+            Text(model.isSaving ? Strings.Add.saving : Strings.Add.saveTransaction)
                 .font(.body.weight(.bold))
                 .foregroundStyle(.white)
                 .frame(maxWidth: .infinity)
@@ -318,62 +283,7 @@ struct AddTransactionView: View {
                 .background(Emerald.primary)
                 .clipShape(.rect(cornerRadius: 14))
         }
-        .disabled(!isValid || isSaving)
-        .opacity(isValid && !isSaving ? 1 : 0.5)
-    }
-
-    // MARK: - Actions
-
-    private func loadCategories() async {
-        do {
-            categories = try await session.api.categories()
-        } catch {
-            errorMessage = error.localizedDescription
-        }
-    }
-
-    private func addCategory() {
-        let name = newCategoryName.trimmingCharacters(in: .whitespaces)
-        guard !name.isEmpty else { return }
-        Task {
-            do {
-                let category = try await session.api.createCategory(name: name)
-                categories.append(category)
-                selectedCategoryId = category.id
-                newCategoryName = ""
-                isAddingCategory = false
-            } catch {
-                errorMessage = error.localizedDescription
-            }
-        }
-    }
-
-    private func save() {
-        guard let amount = amountValue, amount > 0,
-              let categoryId = selectedCategoryId else { return }
-
-        let paise = Int((amount * 100).rounded())
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd"
-
-        let request = CreateTxRequest(
-            merchant: merchant.trimmingCharacters(in: .whitespaces),
-            categoryId: categoryId,
-            date: formatter.string(from: date),
-            paymentMethod: paymentMethod,
-            amount: txType == .expense ? -paise : paise
-        )
-
-        errorMessage = nil
-        isSaving = true
-        Task {
-            defer { isSaving = false }
-            do {
-                _ = try await session.api.createTransaction(request)
-                dismiss()
-            } catch {
-                errorMessage = error.localizedDescription
-            }
-        }
+        .disabled(!model.isValid || model.isSaving)
+        .opacity(model.isValid && !model.isSaving ? 1 : 0.5)
     }
 }

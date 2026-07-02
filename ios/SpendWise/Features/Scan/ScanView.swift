@@ -3,50 +3,30 @@ import SwiftUI
 /// Receipt scanning flow per the mScan mobile spec:
 /// idle (viewfinder) → processing (fake receipt + laser) → review (editable fields).
 struct ScanView: View {
-    enum ScanStep {
-        case idle
-        case processing
-        case review
-    }
-
     @Environment(SessionStore.self) private var session
-
-    @State private var step: ScanStep = .idle
-    @State private var result: ScanResult?
-    @State private var categories: [Category] = []
-
-    // Editable review fields
-    @State private var merchant = ""
-    @State private var dateString = ""
-    @State private var totalRupees = ""
-    @State private var selectedCategoryId = ""
-
-    @State private var isSaving = false
-    @State private var errorMessage: String?
-    @State private var showError = false
-    @State private var showSavedToast = false
+    @Bindable private var model = ScanViewModel()
 
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 14) {
-                    switch step {
+                    switch model.step {
                     case .idle:
                         idleSection
                     case .processing:
                         ScanProcessingCard()
                     case .review:
-                        if let result {
+                        if let result = model.result {
                             ScanReviewView(
                                 result: result,
-                                categories: categories,
-                                merchant: $merchant,
-                                dateString: $dateString,
-                                totalRupees: $totalRupees,
-                                selectedCategoryId: $selectedCategoryId,
-                                isSaving: isSaving,
-                                onConfirm: save,
-                                onScanAgain: reset
+                                categories: model.categories,
+                                merchant: $model.merchant,
+                                dateString: $model.dateString,
+                                totalRupees: $model.totalRupees,
+                                selectedCategoryId: $model.selectedCategoryId,
+                                isSaving: model.isSaving,
+                                onConfirm: { Task { await model.save(api: session.api) } },
+                                onScanAgain: model.reset
                             )
                         }
                     }
@@ -55,19 +35,19 @@ struct ScanView: View {
             }
             .scrollBounceBehavior(.basedOnSize)
             .background(Emerald.background)
-            .navigationTitle("Scan Receipt")
-            .animation(.easeInOut(duration: 0.3), value: step)
+            .navigationTitle(Strings.Scan.title)
+            .animation(.easeInOut(duration: 0.3), value: model.step)
             .overlay(alignment: .bottom) {
-                if showSavedToast {
+                if model.showSavedToast {
                     savedToast
                         .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
             }
-            .animation(.spring(duration: 0.3), value: showSavedToast)
-            .alert("Something went wrong", isPresented: $showError) {
-                Button("OK", role: .cancel) {}
+            .animation(.spring(duration: 0.3), value: model.showSavedToast)
+            .alert(Strings.Common.somethingWentWrong, isPresented: $model.showError) {
+                Button(Strings.Common.ok, role: .cancel) {}
             } message: {
-                Text(errorMessage ?? "Please try again.")
+                Text(model.errorMessage ?? Strings.Common.pleaseTryAgain)
             }
         }
     }
@@ -79,9 +59,9 @@ struct ScanView: View {
             viewfinderCard
 
             Button {
-                start()
+                Task { await model.start(api: session.api) }
             } label: {
-                Label("Take Photo", systemImage: "camera.fill")
+                Label(Strings.Scan.takePhoto, systemImage: "camera.fill")
                     .font(.body.weight(.semibold))
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 15)
@@ -91,9 +71,9 @@ struct ScanView: View {
             }
 
             Button {
-                start()
+                Task { await model.start(api: session.api) }
             } label: {
-                Text("Upload from Files")
+                Text(Strings.Scan.uploadFromFiles)
                     .font(.body.weight(.semibold))
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 15)
@@ -117,11 +97,11 @@ struct ScanView: View {
                 .background(Emerald.mint.opacity(0.16))
                 .clipShape(.rect(cornerRadius: 20))
 
-            Text("Position receipt in frame")
+            Text(Strings.Scan.positionReceipt)
                 .font(.headline)
                 .foregroundStyle(.white.opacity(0.8))
 
-            Text("We'll auto-detect the merchant, date and total for you")
+            Text(Strings.Scan.autoDetectHint)
                 .font(.caption)
                 .foregroundStyle(.white.opacity(0.55))
                 .multilineTextAlignment(.center)
@@ -145,89 +125,13 @@ struct ScanView: View {
             .padding(18)
     }
 
-    // MARK: - Flow
-
-    private func start() {
-        errorMessage = nil
-        step = .processing
-        Task {
-            do {
-                async let scanned = session.api.scanReceipt()
-                async let loadedCategories = session.api.categories()
-                // Keep the scan animation on screen long enough to read.
-                try? await Task.sleep(nanoseconds: 1_900_000_000)
-
-                let scan = try await scanned
-                categories = try await loadedCategories
-
-                result = scan
-                merchant = scan.merchant
-                dateString = scan.date
-                let rupees = Double(scan.total) / 100
-                totalRupees = rupees.truncatingRemainder(dividingBy: 1) == 0
-                    ? String(Int(rupees))
-                    : String(format: "%.2f", rupees)
-                selectedCategoryId = scan.suggestedCategoryId
-
-                withAnimation(.easeInOut(duration: 0.3)) {
-                    step = .review
-                }
-            } catch {
-                errorMessage = error.localizedDescription
-                showError = true
-                withAnimation { step = .idle }
-            }
-        }
-    }
-
-    private func save() {
-        guard let result, !isSaving else { return }
-        let rupees = Double(totalRupees) ?? Double(result.total) / 100
-        let paise = -abs(Int((rupees * 100).rounded()))
-        isSaving = true
-        Task {
-            defer { isSaving = false }
-            do {
-                _ = try await session.api.createTransaction(CreateTxRequest(
-                    merchant: merchant,
-                    categoryId: selectedCategoryId,
-                    date: result.date,
-                    paymentMethod: "Receipt scan",
-                    amount: paise,
-                    lineItems: result.lineItems
-                ))
-                reset()
-                showSavedToast = true
-                Task {
-                    try? await Task.sleep(nanoseconds: 2_200_000_000)
-                    showSavedToast = false
-                }
-            } catch {
-                errorMessage = error.localizedDescription
-                showError = true
-                reset()
-            }
-        }
-    }
-
-    private func reset() {
-        withAnimation(.easeInOut(duration: 0.25)) {
-            step = .idle
-        }
-        result = nil
-        merchant = ""
-        dateString = ""
-        totalRupees = ""
-        selectedCategoryId = ""
-    }
-
     // MARK: - Toast
 
     private var savedToast: some View {
         HStack(spacing: 9) {
             Image(systemName: "checkmark.circle.fill")
                 .foregroundStyle(Emerald.mint)
-            Text("Saved to transactions")
+            Text(Strings.Scan.savedToast)
                 .font(.subheadline.weight(.semibold))
                 .foregroundStyle(.white)
         }

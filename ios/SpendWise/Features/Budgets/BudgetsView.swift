@@ -4,21 +4,7 @@ import SwiftUI
 /// overall budget ring, then one progress card per category budget.
 struct BudgetsView: View {
     @Environment(SessionStore.self) private var session
-
-    @State private var summary: AnalyticsSummary?
-    @State private var errorMessage: String?
-
-    private var month: String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM"
-        return formatter.string(from: Date())
-    }
-
-    private var monthLabel: String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "MMMM yyyy"
-        return formatter.string(from: Date())
-    }
+    @State private var model = BudgetsViewModel()
 
     var body: some View {
         NavigationStack {
@@ -27,20 +13,20 @@ struct BudgetsView: View {
                     .padding(16)
             }
             .background(Emerald.background)
-            .navigationTitle("Budgets")
-            .task { await load() }
-            .refreshable { await load() }
-            .animation(.easeOut(duration: 0.35), value: summary)
+            .navigationTitle(Strings.Budgets.title)
+            .task { await model.load(api: session.api) }
+            .refreshable { await model.load(api: session.api) }
+            .animation(.easeOut(duration: 0.35), value: model.summary)
         }
     }
 
     @ViewBuilder
     private var content: some View {
-        if let summary {
+        if let summary = model.summary {
             VStack(alignment: .leading, spacing: 14) {
                 heroCard(summary)
 
-                Text("CATEGORIES")
+                Text(Strings.Budgets.categoriesHeader)
                     .font(.caption.weight(.bold))
                     .foregroundStyle(Emerald.text5)
                     .padding(.top, 8)
@@ -50,26 +36,10 @@ struct BudgetsView: View {
                     BudgetCategoryCard(usage: usage)
                 }
             }
-        } else if let errorMessage {
-            VStack(spacing: 12) {
-                Text(errorMessage)
-                    .font(.subheadline)
-                    .foregroundStyle(Emerald.text3)
-                    .multilineTextAlignment(.center)
-                Button {
-                    Task { await load() }
-                } label: {
-                    Text("Retry")
-                        .font(.subheadline.weight(.bold))
-                        .padding(.horizontal, 24)
-                        .padding(.vertical, 10)
-                        .background(Emerald.primary)
-                        .foregroundStyle(.white)
-                        .clipShape(Capsule())
-                }
-            }
-            .frame(maxWidth: .infinity)
-            .padding(.top, 120)
+        } else if let errorMessage = model.errorMessage {
+            ErrorStateView(message: errorMessage, retry: { Task { await model.load(api: session.api) } }, style: .button)
+                .frame(maxWidth: .infinity)
+                .padding(.top, 120)
         } else {
             ProgressView()
                 .tint(Emerald.primary)
@@ -85,13 +55,16 @@ struct BudgetsView: View {
             budgetRing(pct: summary.budgetPct)
 
             VStack(alignment: .leading, spacing: 4) {
-                Text("Monthly budget · \(monthLabel)")
+                Text(Strings.Budgets.monthlyBudget(AppDate.currentMonthLabel))
                     .font(.caption)
                     .foregroundStyle(.white.opacity(0.75))
-                Text("\(Money.format(summary.expense, abs: true)) of \(Money.format(summary.budgetTotal, abs: true))")
+                Text(Strings.Budgets.spentOfBudget(
+                    Money.format(summary.expense, abs: true),
+                    Money.format(summary.budgetTotal, abs: true)
+                ))
                     .font(.title3.weight(.bold))
                     .foregroundStyle(.white)
-                Text("\(Money.format(summary.budgetLeft, abs: true)) left to spend")
+                Text(Strings.Budgets.amountLeftToSpend(Money.format(summary.budgetLeft, abs: true)))
                     .font(.caption)
                     .foregroundStyle(.white.opacity(0.75))
             }
@@ -116,18 +89,5 @@ struct BudgetsView: View {
                 .foregroundStyle(.white)
         }
         .frame(width: 96, height: 96)
-    }
-
-    // MARK: - Data
-
-    private func load() async {
-        errorMessage = nil
-        do {
-            summary = try await session.api.summary(month: month)
-        } catch {
-            if summary == nil {
-                errorMessage = error.localizedDescription
-            }
-        }
     }
 }

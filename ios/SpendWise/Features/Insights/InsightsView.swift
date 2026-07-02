@@ -13,7 +13,7 @@ struct InsightsView: View {
                 Emerald.background.ignoresSafeArea()
                 content
             }
-            .navigationTitle("Insights")
+            .navigationTitle(Strings.Insights.title)
             .navigationBarTitleDisplayMode(.large)
             .task { await model.load(api: session.api) }
         }
@@ -27,7 +27,8 @@ struct InsightsView: View {
             ProgressView()
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
         } else if let message = model.errorMessage, model.summary == nil {
-            errorState(message)
+            ErrorStateView(message: message, retry: { Task { await model.load(api: session.api) } })
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
         } else if let summary = model.summary {
             ScrollView {
                 VStack(spacing: 14) {
@@ -45,22 +46,6 @@ struct InsightsView: View {
             }
             .refreshable { await model.load(api: session.api) }
         }
-    }
-
-    private func errorState(_ message: String) -> some View {
-        VStack(spacing: 12) {
-            Text(message)
-                .font(.subheadline)
-                .foregroundStyle(Emerald.text3)
-                .multilineTextAlignment(.center)
-            Button("Retry") {
-                Task { await model.load(api: session.api) }
-            }
-            .font(.subheadline.weight(.semibold))
-            .foregroundStyle(Emerald.primary)
-        }
-        .padding(24)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     // MARK: insight cards
@@ -96,8 +81,8 @@ struct InsightsView: View {
 
     private func chipColors(for tag: String) -> (bg: Color, fg: Color) {
         switch tag {
-        case "alert": return (Emerald.dangerBg, Emerald.danger)
-        case "great": return (Emerald.successBg, Emerald.successDark)
+        case Strings.Insights.tagAlert: return (Emerald.dangerBg, Emerald.danger)
+        case Strings.Insights.tagGreat: return (Emerald.successBg, Emerald.successDark)
         default: return (Emerald.warnBg, Emerald.warnText) // watch
         }
     }
@@ -107,10 +92,10 @@ struct InsightsView: View {
     private func trendCard(_ summary: AnalyticsSummary) -> some View {
         let lastMonth = summary.trend.last?.month
         return VStack(alignment: .leading, spacing: 4) {
-            Text("Spending trend")
+            Text(Strings.Insights.spendingTrend)
                 .font(.headline)
                 .foregroundStyle(Emerald.text)
-            Text("Last 6 months · avg \(Money.format(model.trendAverage, abs: true))/mo")
+            Text(Strings.Insights.trendSubtitle(Money.format(model.trendAverage, abs: true)))
                 .font(.caption)
                 .foregroundStyle(Emerald.text5)
             Chart(summary.trend, id: \.month) { point in
@@ -121,7 +106,7 @@ struct InsightsView: View {
                 .foregroundStyle(
                     point.month == lastMonth
                         ? AnyShapeStyle(Emerald.heroGradient)
-                        : AnyShapeStyle(Color(hexString: "#DCEAE4"))
+                        : AnyShapeStyle(Emerald.chartTrackBar)
                 )
                 .cornerRadius(6)
             }
@@ -138,14 +123,14 @@ struct InsightsView: View {
 
     private func categoryCard(_ summary: AnalyticsSummary) -> some View {
         VStack(alignment: .leading, spacing: 14) {
-            Text("By category")
+            Text(Strings.Insights.byCategory)
                 .font(.headline)
                 .foregroundStyle(Emerald.text)
             HStack(alignment: .center, spacing: 16) {
                 SpendingDonutChart(breakdown: summary.breakdown, totalExpense: summary.expense, size: 130)
                 VStack(spacing: 7) {
                     ForEach(summary.breakdown, id: \.category.id) { slice in
-                        legendRow(slice)
+                        CategoryLegendRow(slice: slice)
                     }
                 }
             }
@@ -155,44 +140,25 @@ struct InsightsView: View {
         .emeraldCard()
     }
 
-    private func legendRow(_ slice: CategoryBreakdown) -> some View {
-        HStack(spacing: 8) {
-            Circle()
-                .fill(Color(hexString: slice.category.color))
-                .frame(width: 8, height: 8)
-            Text(slice.category.name)
-                .font(.caption)
-                .foregroundStyle(Emerald.text2)
-                .lineLimit(1)
-            Spacer(minLength: 4)
-            Text(Money.format(slice.spent, abs: true))
-                .font(.caption.weight(.bold))
-                .foregroundStyle(Emerald.text)
-            Text("\(slice.pct)%")
-                .font(.caption2)
-                .foregroundStyle(Emerald.text5)
-        }
-    }
-
     // MARK: subscriptions
 
     private var subscriptionsCard: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Text("Subscriptions")
+                Text(Strings.Insights.subscriptions)
                     .font(.headline)
                     .foregroundStyle(Emerald.text)
                 Spacer()
-                Text("\(Money.format(model.subscriptionsTotal, abs: true))/mo")
+                Text(Strings.Insights.perMonth(Money.format(model.subscriptionsTotal, abs: true)))
                     .font(.caption.weight(.bold))
-                    .foregroundStyle(Color(hexString: "#7568C4"))
+                    .foregroundStyle(Emerald.subscriptionAccent)
                     .padding(.horizontal, 10)
                     .padding(.vertical, 3)
-                    .background(Color(hexString: "#EAE7FA"))
+                    .background(Emerald.subscriptionAccentBg)
                     .clipShape(Capsule())
             }
             if model.subscriptions.isEmpty {
-                Text("No subscriptions this month")
+                Text(Strings.Insights.noSubscriptions)
                     .font(.caption)
                     .foregroundStyle(Emerald.text5)
             } else {
@@ -214,7 +180,7 @@ struct InsightsView: View {
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(Emerald.text)
                     .lineLimit(1)
-                Text("Monthly")
+                Text(Strings.Insights.monthly)
                     .font(.caption)
                     .foregroundStyle(Emerald.text5)
             }

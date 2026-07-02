@@ -1,5 +1,4 @@
 import SwiftUI
-import Charts
 
 /// Mobile dashboard (spec: mHome). Greeting header, balance hero, quick
 /// actions, spending donut, budget progress, insight banner and recent rows.
@@ -35,7 +34,8 @@ struct HomeView: View {
             ProgressView()
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
         } else if let message = model.errorMessage, model.summary == nil {
-            errorState(message)
+            ErrorStateView(message: message, retry: { Task { await model.load(api: session.api) } })
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
         } else if let summary = model.summary {
             ScrollView {
                 VStack(spacing: 14) {
@@ -58,28 +58,12 @@ struct HomeView: View {
         }
     }
 
-    private func errorState(_ message: String) -> some View {
-        VStack(spacing: 12) {
-            Text(message)
-                .font(.subheadline)
-                .foregroundStyle(Emerald.text3)
-                .multilineTextAlignment(.center)
-            Button("Retry") {
-                Task { await model.load(api: session.api) }
-            }
-            .font(.subheadline.weight(.semibold))
-            .foregroundStyle(Emerald.primary)
-        }
-        .padding(24)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-    }
-
     // MARK: greeting header
 
     private var greetingHeader: some View {
         HStack(alignment: .top) {
             VStack(alignment: .leading, spacing: 2) {
-                Text("Good morning")
+                Text(Strings.Home.greeting)
                     .font(.subheadline.weight(.medium))
                     .foregroundStyle(Emerald.text5)
                 Text(firstName)
@@ -110,18 +94,18 @@ struct HomeView: View {
 
     private func heroCard(_ summary: AnalyticsSummary) -> some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text("Total balance")
+            Text(Strings.Home.totalBalance)
                 .font(.caption)
                 .foregroundStyle(.white.opacity(0.7))
             Text(Money.format(summary.balance))
                 .font(.system(size: 32, weight: .bold, design: .rounded))
                 .foregroundStyle(.white)
             HStack(spacing: 14) {
-                heroMiniStat(label: "Income", amount: summary.income)
+                heroMiniStat(label: Strings.Home.income, amount: summary.income)
                 Rectangle()
                     .fill(.white.opacity(0.25))
                     .frame(width: 1, height: 30)
-                heroMiniStat(label: "Spent", amount: summary.expense)
+                heroMiniStat(label: Strings.Home.spent, amount: summary.expense)
             }
             .padding(.top, 12)
         }
@@ -175,14 +159,14 @@ struct HomeView: View {
 
     private func spendingCard(_ summary: AnalyticsSummary) -> some View {
         VStack(alignment: .leading, spacing: 14) {
-            Text("Spending by category")
+            Text(Strings.Home.spendingByCategory)
                 .font(.headline)
                 .foregroundStyle(Emerald.text)
             HStack(spacing: 16) {
                 SpendingDonutChart(breakdown: summary.breakdown, totalExpense: summary.expense)
                 VStack(spacing: 8) {
                     ForEach(Array(summary.breakdown.prefix(4)), id: \.category.id) { slice in
-                        legendRow(slice)
+                        CategoryLegendRow(slice: slice)
                     }
                 }
             }
@@ -192,36 +176,17 @@ struct HomeView: View {
         .emeraldCard()
     }
 
-    private func legendRow(_ slice: CategoryBreakdown) -> some View {
-        HStack(spacing: 8) {
-            Circle()
-                .fill(Color(hexString: slice.category.color))
-                .frame(width: 8, height: 8)
-            Text(slice.category.name)
-                .font(.caption)
-                .foregroundStyle(Emerald.text2)
-                .lineLimit(1)
-            Spacer(minLength: 4)
-            Text(Money.format(slice.spent, abs: true))
-                .font(.caption.weight(.bold))
-                .foregroundStyle(Emerald.text)
-            Text("\(slice.pct)%")
-                .font(.caption2)
-                .foregroundStyle(Emerald.text5)
-        }
-    }
-
     // MARK: monthly budget
 
     private func budgetCard(_ summary: AnalyticsSummary) -> some View {
         let fraction = min(1, Double(summary.budgetPct) / 100)
         return VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Text("Monthly budget")
+                Text(Strings.Home.monthlyBudget)
                     .font(.headline)
                     .foregroundStyle(Emerald.text)
                 Spacer()
-                Text("\(summary.budgetPct)% used")
+                Text(Strings.Home.budgetPctUsed(summary.budgetPct))
                     .font(.caption.weight(.bold))
                     .foregroundStyle(Emerald.primary)
             }
@@ -236,11 +201,11 @@ struct HomeView: View {
             .frame(height: 10)
             .animation(.easeOut(duration: 0.5), value: fraction)
             HStack {
-                Text("\(Money.format(summary.budgetLeft, abs: true)) left")
+                Text(Strings.Home.amountLeft(Money.format(summary.budgetLeft, abs: true)))
                     .font(.caption)
                     .foregroundStyle(Emerald.text5)
                 Spacer()
-                Text("of \(Money.format(summary.budgetTotal, abs: true))")
+                Text(Strings.Home.ofAmount(Money.format(summary.budgetTotal, abs: true)))
                     .font(.caption)
                     .foregroundStyle(Emerald.text5)
             }
@@ -253,14 +218,14 @@ struct HomeView: View {
     // MARK: insight banner
 
     private func insightBanner(_ insight: Insight) -> some View {
-        let isGreat = insight.tag == "great"
+        let isGreat = insight.tag == Strings.Insights.tagGreat
         return VStack(alignment: .leading, spacing: 2) {
             Text(insight.title)
                 .font(.system(size: 14, weight: .bold))
                 .foregroundStyle(isGreat ? Emerald.successDark : Emerald.warnText)
             Text(insight.description)
                 .font(.system(size: 12))
-                .foregroundStyle(isGreat ? Emerald.successDark.opacity(0.8) : Color(hexString: "#A5762F"))
+                .foregroundStyle(isGreat ? Emerald.successDark.opacity(0.8) : Emerald.warnTextMuted)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(14)
@@ -273,7 +238,7 @@ struct HomeView: View {
     private func recentCard(_ summary: AnalyticsSummary) -> some View {
         let recent = Array(summary.recentTransactions.prefix(5))
         return VStack(alignment: .leading, spacing: 0) {
-            Text("Recent transactions")
+            Text(Strings.Home.recentTransactions)
                 .font(.headline)
                 .foregroundStyle(Emerald.text)
                 .padding(.bottom, 6)
@@ -299,7 +264,7 @@ struct HomeView: View {
                     .font(.subheadline.weight(.bold))
                     .foregroundStyle(Emerald.text)
                     .lineLimit(1)
-                Text("\(category.name) · \(HomeViewModel.shortDate(tx.date))")
+                Text("\(category.name) · \(AppDate.shortDay(tx.date))")
                     .font(.caption)
                     .foregroundStyle(Emerald.text5)
             }
@@ -321,10 +286,10 @@ enum HomeQuickAction: String, CaseIterable, Identifiable {
 
     var title: String {
         switch self {
-        case .add: return "Add"
-        case .scan: return "Scan"
-        case .budgets: return "Budgets"
-        case .insights: return "Insights"
+        case .add: return Strings.Home.addAction
+        case .scan: return Strings.Home.scanAction
+        case .budgets: return Strings.Home.budgetsAction
+        case .insights: return Strings.Home.insightsAction
         }
     }
 
@@ -334,37 +299,6 @@ enum HomeQuickAction: String, CaseIterable, Identifiable {
         case .scan: return "viewfinder"
         case .budgets: return "chart.pie.fill"
         case .insights: return "chart.bar.fill"
-        }
-    }
-}
-
-// MARK: - shared donut (also used by InsightsView)
-
-struct SpendingDonutChart: View {
-    let breakdown: [CategoryBreakdown]
-    let totalExpense: Int
-    var size: CGFloat = 140
-
-    var body: some View {
-        Chart(breakdown, id: \.category.id) { slice in
-            SectorMark(
-                angle: .value("Spent", slice.spent),
-                innerRadius: .ratio(0.72),
-                angularInset: 1.5
-            )
-            .foregroundStyle(Color(hexString: slice.category.color))
-        }
-        .chartLegend(.hidden)
-        .frame(width: size, height: size)
-        .overlay {
-            VStack(spacing: 2) {
-                Text("Total spent")
-                    .font(.system(size: 10))
-                    .foregroundStyle(Emerald.text5)
-                Text(Money.format(totalExpense, abs: true))
-                    .font(.system(size: 15, weight: .bold, design: .rounded))
-                    .foregroundStyle(Emerald.text)
-            }
         }
     }
 }

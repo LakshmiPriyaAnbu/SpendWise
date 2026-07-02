@@ -32,7 +32,7 @@ struct ScanReviewView: View {
             Button {
                 onConfirm()
             } label: {
-                Text(isSaving ? "Saving…" : "Confirm & Save")
+                Text(isSaving ? Strings.Scan.saving : Strings.Scan.confirmAndSave)
                     .font(.body.weight(.semibold))
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 15)
@@ -45,7 +45,7 @@ struct ScanReviewView: View {
             Button {
                 onScanAgain()
             } label: {
-                Text("Scan again")
+                Text(Strings.Scan.scanAgain)
                     .font(.body.weight(.semibold))
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 14)
@@ -67,7 +67,7 @@ struct ScanReviewView: View {
         HStack(spacing: 8) {
             Image(systemName: "checkmark.circle.fill")
                 .foregroundStyle(Emerald.success)
-            Text("Extracted with \(result.confidence)% confidence · review below")
+            Text(Strings.Scan.confidence(result.confidence))
                 .font(.caption.weight(.bold))
                 .foregroundStyle(Emerald.successDark)
             Spacer(minLength: 0)
@@ -78,7 +78,7 @@ struct ScanReviewView: View {
         .clipShape(.rect(cornerRadius: 12))
         .overlay(
             RoundedRectangle(cornerRadius: 12)
-                .stroke(Color(hex: 0xCDEEE0), lineWidth: 1)
+                .stroke(Emerald.successBorder, lineWidth: 1)
         )
     }
 
@@ -87,7 +87,9 @@ struct ScanReviewView: View {
             Image(systemName: "exclamationmark.triangle.fill")
                 .font(.footnote)
                 .foregroundStyle(Emerald.warn)
-            Text("Possible duplicate — similar \(Money.format(duplicate.amount, abs: true)) charge on \(prettyDate(duplicate.date)). Save anyway?")
+            Text(Strings.Scan.duplicateWarning(
+                Money.format(duplicate.amount, abs: true), AppDate.longDay(duplicate.date)
+            ))
                 .font(.caption)
                 .foregroundStyle(Emerald.warnText)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -102,23 +104,23 @@ struct ScanReviewView: View {
 
     private var detailsCard: some View {
         VStack(spacing: 0) {
-            fieldRow("Merchant") {
-                TextField("Merchant", text: $merchant)
+            fieldRow(Strings.Scan.merchantLabel) {
+                TextField(Strings.Scan.merchantLabel, text: $merchant)
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(Emerald.text)
                     .multilineTextAlignment(.trailing)
             }
             Divider().padding(.leading, 15)
 
-            fieldRow("Date") {
-                Text(prettyDate(dateString))
+            fieldRow(Strings.Scan.dateLabel) {
+                Text(AppDate.longDay(dateString))
                     .font(.subheadline)
                     .foregroundStyle(Emerald.text)
                     .frame(maxWidth: .infinity, alignment: .trailing)
             }
             Divider().padding(.leading, 15)
 
-            fieldRow("Total") {
+            fieldRow(Strings.Scan.totalLabel) {
                 TextField("0", text: $totalRupees)
                     .keyboardType(.decimalPad)
                     .font(.subheadline.weight(.bold))
@@ -127,7 +129,7 @@ struct ScanReviewView: View {
             }
             Divider().padding(.leading, 15)
 
-            fieldRow("Category") {
+            fieldRow(Strings.Scan.categoryLabel) {
                 categoryMenu
             }
         }
@@ -153,7 +155,7 @@ struct ScanReviewView: View {
                 Circle()
                     .fill(Color(hexString: selectedCategory?.color ?? "#8A9691"))
                     .frame(width: 9, height: 9)
-                Text(selectedCategory?.name ?? "Choose…")
+                Text(selectedCategory?.name ?? Strings.Scan.chooseCategory)
                     .font(.subheadline.weight(.medium))
                     .foregroundStyle(Emerald.text)
                 Image(systemName: "chevron.up.chevron.down")
@@ -200,14 +202,4 @@ struct ScanReviewView: View {
         .emeraldCard()
     }
 
-    // MARK: - Helpers
-
-    private func prettyDate(_ iso: String) -> String {
-        let input = DateFormatter()
-        input.dateFormat = "yyyy-MM-dd"
-        guard let date = input.date(from: iso) else { return iso }
-        let output = DateFormatter()
-        output.dateFormat = "MMM d, yyyy"
-        return output.string(from: date)
-    }
 }

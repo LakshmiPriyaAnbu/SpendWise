@@ -5,8 +5,6 @@ import SwiftUI
 struct BudgetCategoryCard: View {
     let usage: BudgetUsage
 
-    private static let closeChipText = Color(hex: 0xB9701A)
-
     var body: some View {
         VStack(spacing: 11) {
             HStack(spacing: 12) {
@@ -16,7 +14,9 @@ struct BudgetCategoryCard: View {
                     Text(usage.category.name)
                         .font(.subheadline.weight(.bold))
                         .foregroundStyle(Emerald.text)
-                    Text("\(Money.format(usage.spent, abs: true)) of \(Money.format(usage.budget, abs: true))")
+                    Text(Strings.Budgets.spentOfBudget(
+                        Money.format(usage.spent, abs: true), Money.format(usage.budget, abs: true)
+                    ))
                         .font(.caption)
                         .foregroundStyle(Emerald.text5)
                 }
@@ -29,7 +29,7 @@ struct BudgetCategoryCard: View {
             progressBar
 
             HStack {
-                Text("\(usage.pct)% used")
+                Text(Strings.Budgets.pctUsed(usage.pct))
                     .font(.caption.weight(.bold))
                     .foregroundStyle(statusColor)
                 Spacer()
@@ -45,16 +45,16 @@ struct BudgetCategoryCard: View {
     private var statusColor: Color {
         switch usage.status {
         case "over": Emerald.danger
-        case "close": Self.closeChipText
+        case "close": Emerald.closeStatus
         default: Emerald.success
         }
     }
 
     private var statusChip: some View {
         let (label, bg, fg): (String, Color, Color) = switch usage.status {
-        case "over": ("Over", Emerald.dangerBg, Emerald.danger)
-        case "close": ("Close", Emerald.warnBg, Self.closeChipText)
-        default: ("On track", Emerald.successBg, Emerald.success)
+        case "over": (Strings.Budgets.statusOver, Emerald.dangerBg, Emerald.danger)
+        case "close": (Strings.Budgets.statusClose, Emerald.warnBg, Emerald.closeStatus)
+        default: (Strings.Budgets.statusOnTrack, Emerald.successBg, Emerald.success)
         }
         return Text(label)
             .font(.caption2.weight(.bold))
@@ -91,11 +91,11 @@ struct BudgetCategoryCard: View {
     @ViewBuilder
     private var remainingLabel: some View {
         if usage.spent > usage.budget {
-            Text("Over by \(Money.format(usage.spent - usage.budget, abs: true))")
+            Text(Strings.Budgets.overBy(Money.format(usage.spent - usage.budget, abs: true)))
                 .font(.caption)
                 .foregroundStyle(Emerald.danger)
         } else {
-            Text("\(Money.format(usage.budget - usage.spent, abs: true)) left")
+            Text(Strings.Budgets.amountLeft(Money.format(usage.budget - usage.spent, abs: true)))
                 .font(.caption)
                 .foregroundStyle(Emerald.text5)
         }

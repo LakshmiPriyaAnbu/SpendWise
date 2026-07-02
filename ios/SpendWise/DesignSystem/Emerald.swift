@@ -26,8 +26,24 @@ enum Emerald {
     static let warn = Color(hex: 0xD9822B)
     static let warnBg = Color(hex: 0xFEF4E7)
     static let warnText = Color(hex: 0x8A5A12)
+    static let warnTextMuted = Color(hex: 0xA5762F)
     static let danger = Color(hex: 0xD9503F)
     static let dangerBg = Color(hex: 0xFDF1EF)
+
+    /// "Close to budget" status color — distinct from `warn` to match the
+    /// budget card's amber shade in the design prototype.
+    static let closeStatus = Color(hex: 0xB9701A)
+    static let successBorder = Color(hex: 0xCDEEE0)
+
+    /// Subscriptions summary chip (Insights screen).
+    static let subscriptionAccent = Color(hex: 0x7568C4)
+    static let subscriptionAccentBg = Color(hex: 0xEAE7FA)
+
+    /// Inactive bar color in the spending trend chart (Insights screen).
+    static let chartTrackBar = Color(hex: 0xDCEAE4)
+
+    /// Tinted background for inline text entry fields (e.g. new category name).
+    static let inputBg = Color(hex: 0xF6FBF9)
 
     static let heroGradient = LinearGradient(
         colors: [Color(hex: 0x18B184), Color(hex: 0x0E7C66)],

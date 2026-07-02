@@ -2,13 +2,7 @@ import SwiftUI
 
 struct LoginView: View {
     @Environment(SessionStore.self) private var session
-
-    @State private var email = "lakshmi@email.com"
-    @State private var password = "spendwise123"
-    @State private var name = ""
-    @State private var isRegistering = false
-    @State private var isBusy = false
-    @State private var errorMessage: String?
+    @State private var model = LoginViewModel()
 
     var body: some View {
         ScrollView {
@@ -17,21 +11,21 @@ struct LoginView: View {
                     .padding(.top, 72)
 
                 VStack(spacing: 14) {
-                    if isRegistering {
-                        field("Name", text: $name)
+                    if model.isRegistering {
+                        field(Strings.Auth.namePlaceholder, text: $model.name)
                             .textContentType(.name)
                     }
-                    field("Email", text: $email)
+                    field(Strings.Auth.emailPlaceholder, text: $model.email)
                         .keyboardType(.emailAddress)
                         .textInputAutocapitalization(.never)
                         .autocorrectionDisabled()
-                    SecureField("Password", text: $password)
+                    SecureField(Strings.Auth.passwordPlaceholder, text: $model.password)
                         .textFieldStyle(.plain)
                         .padding(14)
                         .background(Emerald.background)
                         .clipShape(.rect(cornerRadius: 12))
 
-                    if let errorMessage {
+                    if let errorMessage = model.errorMessage {
                         Text(errorMessage)
                             .font(.footnote.weight(.semibold))
                             .foregroundStyle(Emerald.danger)
@@ -39,10 +33,9 @@ struct LoginView: View {
                     }
 
                     Button {
-                        submit()
+                        Task { await model.submit(session: session) }
                     } label: {
-                        Text(isBusy ? (isRegistering ? "Creating account…" : "Signing in…")
-                                    : (isRegistering ? "Create account" : "Sign in"))
+                        Text(submitLabel)
                             .font(.subheadline.weight(.bold))
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 15)
@@ -50,15 +43,14 @@ struct LoginView: View {
                             .foregroundStyle(.white)
                             .clipShape(.rect(cornerRadius: 13))
                     }
-                    .disabled(isBusy)
+                    .disabled(model.isBusy)
 
                     Button {
                         withAnimation(.easeInOut(duration: 0.2)) {
-                            isRegistering.toggle()
-                            errorMessage = nil
+                            model.toggleMode()
                         }
                     } label: {
-                        Text(isRegistering ? "Have an account? **Sign in**" : "New here? **Create an account**")
+                        Text(model.isRegistering ? Strings.Auth.switchToSignIn : Strings.Auth.switchToRegister)
                             .font(.footnote)
                             .foregroundStyle(Emerald.text3)
                     }
@@ -73,6 +65,13 @@ struct LoginView: View {
         .background(Emerald.background)
     }
 
+    private var submitLabel: String {
+        if model.isBusy {
+            return model.isRegistering ? Strings.Auth.creatingAccount : Strings.Auth.signingIn
+        }
+        return model.isRegistering ? Strings.Auth.createAccount : Strings.Auth.signIn
+    }
+
     private var logo: some View {
         VStack(spacing: 12) {
             Image(systemName: "banknote.fill")
@@ -83,7 +82,7 @@ struct LoginView: View {
                 .clipShape(.rect(cornerRadius: 17))
             (Text("Spend").foregroundStyle(Emerald.text) + Text("Wise").foregroundStyle(Emerald.primary))
                 .font(.system(size: 28, weight: .bold, design: .rounded))
-            Text("Personal finance, made simple")
+            Text(Strings.Auth.tagline)
                 .font(.footnote)
                 .foregroundStyle(Emerald.text5)
         }
@@ -95,22 +94,5 @@ struct LoginView: View {
             .padding(14)
             .background(Emerald.background)
             .clipShape(.rect(cornerRadius: 12))
-    }
-
-    private func submit() {
-        errorMessage = nil
-        isBusy = true
-        Task {
-            defer { isBusy = false }
-            do {
-                if isRegistering {
-                    try await session.register(name: name, email: email, password: password)
-                } else {
-                    try await session.login(email: email, password: password)
-                }
-            } catch {
-                errorMessage = error.localizedDescription
-            }
-        }
     }
 }

@@ -16,7 +16,7 @@ final class InsightsViewModel {
         if summary == nil { isLoading = true }
         errorMessage = nil
         do {
-            let month = HomeViewModel.currentMonth
+            let month = AppDate.currentMonth
             async let summaryTask = api.summary(month: month)
             async let categoriesTask = api.categories()
             async let transactionsTask = api.transactions(month: month, type: "expense")
