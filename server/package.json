@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/main.ts",
-    "build": "tsc",
+    "build": "prisma generate && esbuild src/main.ts --bundle --platform=node --format=esm --packages=external --outfile=dist/main.js && tsc --noEmit",
     "start": "node dist/main.js",
     "migrate": "prisma migrate dev",
     "generate": "prisma generate",
@@ -33,6 +33,7 @@
     "@types/jsonwebtoken": "^9.0.7",
     "@types/multer": "^1.4.12",
     "@types/node": "^22.0.0",
+    "esbuild": "^0.28.1",
     "prisma": "^6.5.0",
     "tsx": "^4.19.0",
     "typescript": "^5.6.0",

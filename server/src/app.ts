@@ -1,5 +1,8 @@
 import express from 'express';
 import cors from 'cors';
+import { existsSync } from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { authMiddleware } from './middleware/auth';
 import { errorMiddleware } from './middleware/error';
 import { authRouter } from './modules/auth/auth.router';
@@ -29,6 +32,18 @@ export function createApp() {
   app.use('/api/imports', importsRouter);
   app.use('/api/reports', reportsRouter);
   app.use('/api/settings', settingsRouter);
+
+  // Production: serve the built Angular app (web/dist/web/browser) with an SPA
+  // fallback for client-side routes. In dev this folder may not exist — ng serve
+  // handles the frontend there.
+  const webDist = path.resolve(
+    path.dirname(fileURLToPath(import.meta.url)),
+    '../../web/dist/web/browser',
+  );
+  if (existsSync(webDist)) {
+    app.use(express.static(webDist));
+    app.get(/^(?!\/api\/).*/, (_req, res) => res.sendFile(path.join(webDist, 'index.html')));
+  }
 
   app.use(errorMiddleware);
   return app;
