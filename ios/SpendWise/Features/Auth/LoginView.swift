@@ -28,7 +28,7 @@ struct LoginView: View {
                     SecureField("Password", text: $password)
                         .textFieldStyle(.plain)
                         .padding(14)
-                        .background(Emerald.card)
+                        .background(Emerald.background)
                         .clipShape(.rect(cornerRadius: 12))
 
                     if let errorMessage {
@@ -93,7 +93,7 @@ struct LoginView: View {
         TextField(placeholder, text: text)
             .textFieldStyle(.plain)
             .padding(14)
-            .background(Emerald.card)
+            .background(Emerald.background)
             .clipShape(.rect(cornerRadius: 12))
     }
 

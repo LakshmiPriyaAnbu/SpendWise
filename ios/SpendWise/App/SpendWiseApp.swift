@@ -9,6 +9,8 @@ struct SpendWiseApp: App {
             RootView()
                 .environment(session)
                 .tint(Emerald.primary)
+                // Emerald design tokens are light-only in v1 (theme setting is web-only)
+                .preferredColorScheme(.light)
         }
     }
 }
