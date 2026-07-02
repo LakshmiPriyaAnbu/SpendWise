@@ -1,0 +1,22 @@
+{
+  "name": "spendwise",
+  "version": "0.1.0",
+  "private": true,
+  "description": "SpendWise — personal finance tracker monorepo (Angular web, Express API, iOS app)",
+  "workspaces": [
+    "shared",
+    "server",
+    "web"
+  ],
+  "scripts": {
+    "db": "docker compose up -d db",
+    "dev": "npm run db && concurrently -n server,web -c green,cyan \"npm run dev -w server\" \"npm run dev -w web\"",
+    "migrate": "npm run migrate -w server",
+    "seed": "npm run seed -w server",
+    "build": "npm run build -w shared && npm run build -w server && npm run build -w web",
+    "test": "npm test -w server"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}

@@ -1,0 +1,94 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String        @id @default(cuid())
+  name         String
+  email        String        @unique
+  passwordHash String
+  plan         String        @default("Free plan")
+  createdAt    DateTime      @default(now())
+  categories   Category[]
+  transactions Transaction[]
+  budgets      Budget[]
+  settings     Settings?
+  reports      ReportExport[]
+}
+
+model Category {
+  id           String        @id @default(cuid())
+  userId       String
+  key          String
+  name         String
+  color        String
+  bg           String
+  icon         String
+  isCustom     Boolean       @default(false)
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
+  budgets      Budget[]
+
+  @@unique([userId, key])
+}
+
+model Transaction {
+  id            String   @id @default(cuid())
+  userId        String
+  merchant      String
+  categoryId    String
+  date          DateTime @db.Date
+  paymentMethod String
+  /// signed paise: expense < 0, income > 0
+  amount        Int
+  notes         String?
+  /// JSON array of {name, amount} receipt line items
+  lineItems     Json?
+  createdAt     DateTime @default(now())
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category      Category @relation(fields: [categoryId], references: [id])
+
+  @@index([userId, date])
+}
+
+model Budget {
+  id         String   @id @default(cuid())
+  userId     String
+  categoryId String
+  /// yyyy-mm
+  month      String
+  /// paise, positive
+  amount     Int
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, categoryId, month])
+}
+
+model Settings {
+  id                   String  @id @default(cuid())
+  userId               String  @unique
+  currency             String  @default("INR")
+  budgetResetDay       Int     @default(1)
+  theme                String  @default("light")
+  maskAccountNumbers   Boolean @default(true)
+  biometricLock        Boolean @default(true)
+  autoDeleteRawUploads Boolean @default(true)
+  usageAnalytics       Boolean @default(false)
+  user                 User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model ReportExport {
+  id        String   @id @default(cuid())
+  userId    String
+  name      String
+  format    String
+  size      String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
