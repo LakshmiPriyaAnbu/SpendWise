@@ -1,0 +1,72 @@
+<div class="layout">
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="logo-mark"><sw-icon name="piggy" [size]="20" /></div>
+      <div class="logo-word">Spend<span>Wise</span></div>
+    </div>
+
+    <nav>
+      @for (item of navItems; track item.id) {
+        <a
+          class="nav-item"
+          [routerLink]="'/' + item.id"
+          routerLinkActive="active"
+        >
+          <sw-icon [name]="item.icon" [size]="20" />
+          <span>{{ item.label }}</span>
+          @if (item.id === 'budgets' && overBudgetCount() > 0) {
+            <span class="badge">{{ overBudgetCount() }}</span>
+          }
+        </a>
+      }
+    </nav>
+
+    <div class="privacy">
+      <div class="privacy-head"><sw-icon name="shield" [size]="15" /><span>Bank-grade privacy</span></div>
+      <div class="privacy-body">Raw statements are masked and never stored permanently.</div>
+    </div>
+
+    <div class="user">
+      <div class="avatar">{{ userInitial() }}</div>
+      <div class="user-meta">
+        <div class="user-name">{{ auth.user()?.name }}</div>
+        <div class="user-email">{{ auth.user()?.email }}</div>
+      </div>
+      <button class="logout" type="button" (click)="auth.logout()" title="Log out">
+        <sw-icon name="x" [size]="15" />
+      </button>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <div class="titles">
+        <div class="page-title">{{ pageTitle().title }}</div>
+        <div class="page-sub">{{ pageTitle().sub }}</div>
+      </div>
+      <div class="actions">
+        <div class="search">
+          <sw-icon name="search" [size]="16" />
+          <input
+            #searchBox
+            placeholder="Search transactions…"
+            (keydown.enter)="onSearch(searchBox.value); searchBox.value = ''"
+          />
+        </div>
+        <button class="bell" type="button">
+          <sw-icon name="bell" [size]="18" />
+          <span class="dot"></span>
+        </button>
+        <button class="sw-btn-primary add-btn" type="button" (click)="goAdd()">
+          <sw-icon name="plus" [size]="16" [strokeWidth]="2.2" />Add
+        </button>
+      </div>
+    </header>
+
+    <main class="content">
+      <router-outlet />
+    </main>
+  </div>
+</div>
+
+<sw-toast />

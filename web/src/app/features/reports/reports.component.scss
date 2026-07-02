@@ -1,0 +1,269 @@
+:host {
+  display: block;
+}
+
+.page {
+  max-width: 960px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+/* generator card */
+.gen {
+  padding: 24px;
+}
+
+.gen-title {
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: 16px;
+}
+
+.pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.pill {
+  border-radius: 99px;
+  padding: 8px 14px;
+  font-size: 12.5px;
+  font-weight: 700;
+  border: 1px solid #e0e8e4;
+  background: #fff;
+  color: var(--sw-text-3);
+  cursor: pointer;
+
+  &.selected {
+    background: var(--sw-primary);
+    border-color: var(--sw-primary);
+    color: #fff;
+  }
+}
+
+.formats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.fmt {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  border-radius: 12px;
+  border: 1px solid #e0e8e4;
+  background: #fff;
+  padding: 14px;
+  cursor: pointer;
+  text-align: left;
+  color: var(--sw-text-3);
+
+  &.selected {
+    border-color: var(--sw-primary);
+    box-shadow: inset 0 0 0 0.5px var(--sw-primary);
+    background: #f6fbf9;
+    color: var(--sw-primary);
+  }
+}
+
+.fmt-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.fmt-label {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--sw-text);
+}
+
+.fmt-sub {
+  font-size: 11.5px;
+  color: var(--sw-text-6);
+}
+
+.includes {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.inc-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: none;
+  background: transparent;
+  padding: 2px 0;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--sw-text-2);
+  cursor: pointer;
+  text-align: left;
+}
+
+.box {
+  width: 18px;
+  height: 18px;
+  border-radius: 6px;
+  flex: none;
+  border: 1.5px solid #cfdbd6;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+
+  &.checked {
+    background: var(--sw-primary);
+    border-color: var(--sw-primary);
+  }
+}
+
+.export-btn {
+  width: 100%;
+  height: 48px;
+  font-size: 14.5px;
+}
+
+/* right column */
+.side {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.summary,
+.exports {
+  padding: 20px;
+}
+
+.card-title {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.card-sub {
+  font-size: 12px;
+  color: var(--sw-text-6);
+  margin-top: 2px;
+  margin-bottom: 8px;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+  padding: 8px 0;
+
+  &.net {
+    border-top: 1px solid var(--sw-track);
+    margin-top: 4px;
+  }
+
+  &.muted {
+    font-size: 12.5px;
+    color: var(--sw-text-6);
+  }
+}
+
+.row-label {
+  color: var(--sw-text-3);
+
+  &.bold {
+    color: var(--sw-text);
+    font-weight: 700;
+  }
+}
+
+.row-val {
+  font-weight: 700;
+
+  &.income {
+    color: var(--sw-success);
+  }
+  &.expense {
+    color: var(--sw-warn);
+  }
+  &.saved {
+    color: var(--sw-primary);
+  }
+}
+
+/* recent exports */
+.exports .card-title {
+  margin-bottom: 10px;
+}
+
+.empty-hint {
+  font-size: 12.5px;
+  color: var(--sw-text-6);
+  padding: 6px 0 4px;
+}
+
+.hist-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+}
+
+.hist-tile {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f2f5f3;
+  color: var(--sw-text-3);
+}
+
+.hist-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.hist-name {
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.hist-sub {
+  font-size: 11.5px;
+  color: var(--sw-text-6);
+  margin-top: 1px;
+}
+
+.hist-dl {
+  width: 30px;
+  height: 30px;
+  flex: none;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--sw-text-6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--sw-hover);
+    color: var(--sw-primary);
+  }
+}

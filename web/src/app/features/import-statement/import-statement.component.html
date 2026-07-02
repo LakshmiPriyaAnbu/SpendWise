@@ -1,0 +1,111 @@
+<div class="import-page sw-rise">
+  @if (step() === 'idle') {
+    <div class="idle-grid">
+      <!-- LEFT: uploader -->
+      <div class="sw-card upload-card">
+        <div class="drop-zone" (dragover)="onDragOver($event)" (drop)="onDrop($event)">
+          <div class="cloud-tile"><sw-icon name="cloud" [size]="28" /></div>
+          <div class="dz-title">Upload a bank statement</div>
+          <div class="dz-sub">Drop a CSV export from your bank</div>
+          <button type="button" class="sw-btn-primary choose-btn" (click)="openPicker()">Choose file</button>
+          <div class="sample-wrap">
+            <button type="button" class="sample-btn" (click)="startImport(null)">Use a sample statement</button>
+          </div>
+          <input #fileInput type="file" accept=".csv" hidden (change)="onFileChosen($event)" />
+        </div>
+      </div>
+      <!-- RIGHT: privacy panel -->
+      <div class="privacy-panel">
+        <div class="pp-head"><sw-icon name="shield" [size]="16" />Your data stays private</div>
+        <div class="pp-body">
+          Sensitive details are masked and raw files are <b>never stored permanently</b>. We only read
+          transaction rows to build your history.
+        </div>
+        <div class="pp-chip">
+          <sw-icon name="lock" [size]="16" />
+          <div>
+            <div class="pp-bank">HDFC Bank ••••4821</div>
+            <div class="pp-note">Account number masked on import</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (step() === 'processing') {
+    <div class="sw-card processing-card">
+      <div class="spinner"></div>
+      <div class="p-title">Processing statement…</div>
+      <div class="p-sub">Masking account details · parsing transactions · detecting duplicates</div>
+    </div>
+  }
+
+  @if (step() === 'preview') {
+    @if (result(); as res) {
+      <div class="chips-row">
+        <div class="chip chip-ok">
+          <sw-icon name="check" [size]="15" />{{ rows().length }} transactions found
+        </div>
+        @if (duplicateCount() > 0) {
+          <div class="chip chip-warn">
+            <sw-icon name="alert" [size]="15" />{{ duplicateCount() }} possible duplicates
+          </div>
+        }
+        <div class="chip-meta">{{ res.bank }} {{ res.maskedAccount }} · {{ res.period }}</div>
+      </div>
+
+      <div class="sw-card table-card">
+        <div class="t-head">
+          <div>Date</div>
+          <div>Description</div>
+          <div>Category</div>
+          <div class="right">Amount</div>
+          <div class="center">Import</div>
+        </div>
+        @for (row of rows(); track $index) {
+          <div class="t-row" [class.dup]="row.duplicate">
+            <div class="t-date">{{ row.date }}</div>
+            <div class="t-desc-cell">
+              <div class="t-desc">{{ row.description }}</div>
+              @if (row.duplicate) {
+                <div class="t-dup-note">⚠ Duplicate — already imported</div>
+              }
+            </div>
+            <div>
+              @if (categoryMap().get(row.categoryId); as cat) {
+                <sw-category-chip [category]="cat" />
+              }
+            </div>
+            <div class="t-amt" [class.income]="row.amount > 0">{{ row.amount | swMoney: 'signed' }}</div>
+            <div class="t-toggle">
+              <button
+                type="button"
+                class="toggle"
+                role="switch"
+                [attr.aria-checked]="row.include"
+                [class.on]="row.include"
+                (click)="toggleRow($index)"
+              >
+                <span class="knob"></span>
+              </button>
+            </div>
+          </div>
+        }
+        <div class="t-footer">
+          <button
+            type="button"
+            class="sw-btn-primary import-btn"
+            [disabled]="includedCount() === 0 || importing()"
+            (click)="confirm()"
+          >
+            Import {{ includedCount() }} transactions
+          </button>
+          <button type="button" class="sw-btn-secondary cancel-btn" (click)="reset()">Cancel</button>
+          @if (skippedDuplicates() > 0) {
+            <span class="skip-note">{{ skippedDuplicates() }} duplicates skipped automatically</span>
+          }
+        </div>
+      </div>
+    }
+  }
+</div>

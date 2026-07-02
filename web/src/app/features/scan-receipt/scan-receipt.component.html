@@ -1,0 +1,146 @@
+<div class="scan-grid sw-rise">
+  <!-- LEFT: uploader / receipt -->
+  <div class="left sw-card">
+    @if (step() === 'idle') {
+      <div class="drop-zone" (dragover)="onDragOver($event)" (drop)="onDrop($event)">
+        <div class="cam-tile"><sw-icon name="camera" [size]="30" /></div>
+        <div class="dz-title">Drag a receipt here</div>
+        <div class="dz-sub">Snap a photo or upload — we'll read the merchant, date and total for you.</div>
+        <div class="dz-actions">
+          <button type="button" class="sw-btn-primary" (click)="openPicker()">
+            <sw-icon name="camera" [size]="16" />Take photo
+          </button>
+          <button type="button" class="sw-btn-secondary" (click)="openPicker()">
+            <sw-icon name="importf" [size]="16" />Upload file
+          </button>
+        </div>
+        <div class="dz-note">JPG, PNG or PDF · up to 10 MB</div>
+        <input
+          #fileInput
+          type="file"
+          accept="image/*,.pdf"
+          hidden
+          (change)="onFileChosen($event)"
+          (cancel)="onPickerCancelled()"
+        />
+      </div>
+    } @else {
+      <div class="receipt-wrap">
+        <div class="receipt">
+          <div class="r-merchant">BLUE TOKAI COFFEE</div>
+          <div class="r-sub">Indiranagar · Jul 1, 2026</div>
+          <div class="r-section">
+            <div class="r-row"><span>Cappuccino ×2</span><span>360</span></div>
+            <div class="r-row"><span>Croissant</span><span>120</span></div>
+            <div class="r-row"><span>Cold brew</span><span>180</span></div>
+          </div>
+          <div class="r-section r-totals">
+            <div class="r-row muted"><span>Subtotal</span><span>660</span></div>
+            <div class="r-row muted"><span>GST 5%</span><span>33</span></div>
+            <div class="r-row r-total"><span>TOTAL</span><span>₹693</span></div>
+          </div>
+          @if (step() === 'processing') {
+            <div class="laser"></div>
+          }
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- RIGHT: extracted details -->
+  <div class="right">
+    @if (step() === 'idle') {
+      <div class="sw-card idle-panel">
+        <div class="idle-tile"><sw-icon name="scan" [size]="24" /></div>
+        <div class="idle-title">Extracted details appear here</div>
+        <div class="idle-sub">Upload a receipt and review the parsed transaction before saving.</div>
+      </div>
+    }
+    @if (step() === 'processing') {
+      <div class="sw-card busy-panel">
+        <div class="busy-head">
+          <div class="spinner"></div>
+          <div class="busy-title">Reading your receipt…</div>
+        </div>
+        <div class="busy-step done"><sw-icon name="check" [size]="16" />Enhancing image quality</div>
+        <div class="busy-step done"><sw-icon name="check" [size]="16" />Detecting merchant &amp; date</div>
+        <div class="busy-step pending"><sw-icon name="dots" [size]="16" />Extracting line items &amp; total</div>
+      </div>
+    }
+    @if (step() === 'review') {
+      @if (result(); as res) {
+        <div class="sw-card review-panel">
+          <div class="confidence-banner">
+            <sw-icon name="check" [size]="15" />Extracted with {{ res.confidence }}% confidence · review below
+          </div>
+          <div class="fields">
+            <div>
+              <label class="f-label" for="scan-merchant">Merchant</label>
+              <input
+                id="scan-merchant"
+                class="sw-input f-input"
+                [value]="merchant()"
+                (input)="onMerchantInput($event)"
+              />
+            </div>
+            <div class="two-col">
+              <div>
+                <label class="f-label" for="scan-date">Date</label>
+                <input
+                  id="scan-date"
+                  type="date"
+                  class="sw-input f-input"
+                  [value]="date()"
+                  (input)="onDateInput($event)"
+                />
+              </div>
+              <div>
+                <label class="f-label" for="scan-total">Total</label>
+                <input
+                  id="scan-total"
+                  class="f-input total-input"
+                  [value]="totalRupees()"
+                  (input)="onTotalInput($event)"
+                />
+              </div>
+            </div>
+            <div>
+              <label class="f-label" for="scan-category">Category · <span class="suggested">suggested</span></label>
+              <select id="scan-category" class="cat-select" (change)="onCategoryChange($event)">
+                @for (cat of categories(); track cat.id) {
+                  <option [value]="cat.id" [selected]="cat.id === categoryId()">{{ cat.name }}</option>
+                }
+              </select>
+            </div>
+            <div>
+              <span class="f-label">Line items</span>
+              <div class="line-items">
+                @for (item of res.lineItems; track item.name) {
+                  <div class="li-row">
+                    <span class="li-name">{{ item.name }}</span>
+                    <span class="li-amt">{{ item.amount | swMoney: 'abs' }}</span>
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+          @if (res.duplicate; as dup) {
+            <div class="dup-banner">
+              <sw-icon name="alert" [size]="15" />
+              <div>
+                <b>Possible duplicate</b> — similar {{ dup.amount | swMoney: 'abs' }} charge on
+                {{ shortDate(dup.date) }}. Save anyway?
+              </div>
+            </div>
+          }
+          <div class="actions">
+            <button type="button" class="sw-btn-primary confirm-btn" [disabled]="saving()" (click)="confirm()">
+              Confirm &amp; save
+            </button>
+            <button type="button" class="sw-btn-secondary retry-btn" (click)="reset()">Retry</button>
+          </div>
+        </div>
+      }
+    }
+  </div>
+</div>

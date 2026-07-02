@@ -1,0 +1,89 @@
+@if (settings(); as s) {
+  <div class="settings sw-rise">
+    <!-- Profile -->
+    <div class="sw-card profile">
+      <div class="avatar">{{ initial() }}</div>
+      <div class="who">
+        <div class="name">{{ user()?.name }}</div>
+        <div class="meta">
+          <span>{{ user()?.email }}</span>
+          <span class="plan-chip">{{ user()?.plan || 'Free' }} plan</span>
+        </div>
+      </div>
+      <button type="button" class="sw-btn-secondary" style="height: 40px">Edit profile</button>
+    </div>
+
+    <!-- Preferences -->
+    <div class="sw-card section">
+      <div class="section-title">Preferences</div>
+      <div class="row">
+        <div class="row-text">
+          <div class="row-label">Currency</div>
+          <div class="row-sub">Used across the app</div>
+        </div>
+        <div class="row-value">Indian Rupee (₹)</div>
+      </div>
+      <div class="row">
+        <div class="row-text">
+          <div class="row-label">Budget reset day</div>
+          <div class="row-sub">When your monthly budget restarts</div>
+        </div>
+        <div class="row-value">1st of month</div>
+      </div>
+      <div class="row">
+        <div class="row-text">
+          <div class="row-label">Theme</div>
+          <div class="row-sub">App appearance</div>
+        </div>
+        <sw-segmented-tabs [tabs]="themeTabs" [selected]="s.theme" (selectedChange)="setTheme($event)" />
+      </div>
+    </div>
+
+    <!-- Privacy & Security -->
+    <div class="sw-card section">
+      <div class="section-title">Privacy &amp; Security</div>
+      @for (row of toggleRows; track row.key) {
+        <div class="row">
+          <div class="row-text">
+            <div class="row-label">{{ row.label }}</div>
+            <div class="row-sub">{{ row.sub }}</div>
+          </div>
+          <button
+            type="button"
+            class="switch"
+            role="switch"
+            [class.on]="s[row.key]"
+            [attr.aria-checked]="s[row.key]"
+            [attr.aria-label]="row.label"
+            (click)="toggle(row.key)"
+          >
+            <span class="knob"></span>
+          </button>
+        </div>
+      }
+    </div>
+
+    <!-- Data -->
+    <div class="sw-card section">
+      <div class="section-title">Data</div>
+      <div class="row data-row">
+        <span class="data-icon export"><sw-icon name="download" [size]="17" /></span>
+        <div class="row-text">
+          <div class="row-label">Export all data</div>
+          <div class="row-sub">Download everything as CSV</div>
+        </div>
+        <button type="button" class="sw-btn-secondary" style="height: 40px" [disabled]="exporting()" (click)="exportData()">
+          {{ exporting() ? 'Exporting…' : 'Export all data' }}
+        </button>
+      </div>
+      <div class="row data-row">
+        <span class="data-icon danger"><sw-icon name="trash" [size]="17" /></span>
+        <div class="row-text">
+          <div class="row-label danger-text">Delete account</div>
+          <div class="row-sub">Permanently erase your data</div>
+        </div>
+        <button type="button" class="btn-danger" (click)="deleteAccount()">Delete account</button>
+      </div>
+    </div>
+  </div>
+}

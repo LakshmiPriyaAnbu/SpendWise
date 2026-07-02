@@ -1,0 +1,100 @@
+<div class="page sw-rise">
+  <div class="toolbar">
+    <div class="search">
+      <sw-icon name="search" [size]="16" />
+      <input
+        type="text"
+        [value]="searchText()"
+        (input)="onSearch($event)"
+        placeholder="Search by merchant…"
+      />
+    </div>
+    <sw-segmented-tabs [tabs]="tabs" [selected]="tab()" (selectedChange)="setTab($event)" />
+    <div class="month">
+      <button type="button" class="chev" aria-label="Previous month" (click)="month.shift(-1)">
+        <sw-icon name="chevL" [size]="15" />
+      </button>
+      <span class="label"><sw-icon name="calendar" [size]="15" />{{ month.label() }}</span>
+      <button type="button" class="chev" aria-label="Next month" (click)="month.shift(1)">
+        <sw-icon name="chevR" [size]="15" />
+      </button>
+    </div>
+  </div>
+
+  <div class="table sw-card">
+    <div class="thead">
+      <div>Merchant</div>
+      <div>Category</div>
+      <div>Date</div>
+      <div class="right">Amount</div>
+      <div></div>
+    </div>
+
+    @for (t of transactions(); track t.id) {
+      <div class="row">
+        <div class="merchant">
+          <span
+            class="tile"
+            [style.background]="catFor(t.categoryId).bg"
+            [style.color]="catFor(t.categoryId).color"
+          >
+            <sw-icon [name]="catFor(t.categoryId).icon" [size]="18" />
+          </span>
+          <div class="mtext">
+            @if (editingId() === t.id) {
+              <input
+                class="edit-input"
+                type="text"
+                [value]="editMerchant()"
+                (input)="onEditMerchant($event)"
+                (keydown.enter)="saveEdit(t)"
+                (keydown.escape)="cancelEdit()"
+              />
+            } @else {
+              <div class="mname">{{ t.merchant }}</div>
+              <div class="msub">{{ t.paymentMethod }}</div>
+            }
+          </div>
+        </div>
+        <div><sw-category-chip [category]="catFor(t.categoryId)" /></div>
+        <div class="date">{{ shortDate(t.date) }}</div>
+        <div class="amount">
+          @if (editingId() === t.id) {
+            <input
+              class="edit-input edit-amount"
+              type="text"
+              inputmode="decimal"
+              [value]="editAmount()"
+              (input)="onEditAmount($event)"
+              (keydown.enter)="saveEdit(t)"
+              (keydown.escape)="cancelEdit()"
+            />
+          } @else {
+            <span class="sw-money amt" [class.income]="t.amount > 0">
+              {{ t.amount > 0 ? (t.amount | swMoney: 'signed') : (t.amount | swMoney) }}
+            </span>
+          }
+        </div>
+        <div class="actions">
+          @if (editingId() === t.id) {
+            <button type="button" class="act save" aria-label="Save" (click)="saveEdit(t)">
+              <sw-icon name="checkPlain" [size]="15" [strokeWidth]="2.2" />
+            </button>
+            <button type="button" class="act" aria-label="Cancel" (click)="cancelEdit()">
+              <sw-icon name="x" [size]="14" />
+            </button>
+          } @else {
+            <button type="button" class="act edit" aria-label="Edit" (click)="startEdit(t)">
+              <sw-icon name="edit" [size]="15" />
+            </button>
+            <button type="button" class="act trash" aria-label="Delete" (click)="remove(t)">
+              <sw-icon name="trash" [size]="15" />
+            </button>
+          }
+        </div>
+      </div>
+    } @empty {
+      <sw-empty-state icon="search" title="No matches" hint="Try a different search or filter." />
+    }
+  </div>
+</div>

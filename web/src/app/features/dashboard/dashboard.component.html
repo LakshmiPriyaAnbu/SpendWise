@@ -1,0 +1,171 @@
+<div class="dash sw-rise">
+
+  <!-- month selector -->
+  <div class="month-row">
+    <div class="month-pill">
+      <button type="button" (click)="monthSvc.shift(-1)" aria-label="Previous month">
+        <sw-icon name="chevL" [size]="16" />
+      </button>
+      <div class="month-label">{{ monthSvc.label() }}</div>
+      <button type="button" (click)="monthSvc.shift(1)" aria-label="Next month">
+        <sw-icon name="chevR" [size]="16" />
+      </button>
+    </div>
+    <div class="month-hint">Here's your money at a glance, {{ firstName() }}.</div>
+  </div>
+
+  @if (summary(); as s) {
+
+    <!-- stat cards -->
+    <div class="stats">
+      <div class="stat hero">
+        <div class="hero-circle"></div>
+        <div class="stat-head hero-head"><sw-icon name="wallet" [size]="16" />Total balance</div>
+        <div class="stat-amt hero-amt sw-money">{{ s.balance | swMoney }}</div>
+        <div class="hero-foot">
+          <span class="hero-badge"><sw-icon name="trendUp" [size]="12" [strokeWidth]="2.2" />{{ savedPct() }}% saved</span>
+          this month
+        </div>
+      </div>
+
+      <div class="stat sw-card">
+        <div class="stat-head">
+          <span class="mini-tile" style="background: var(--sw-success-bg); color: var(--sw-primary)"><sw-icon name="arrowDown" [size]="14" [strokeWidth]="2" /></span>
+          Income
+        </div>
+        <div class="stat-amt sw-money">{{ s.income | swMoney }}</div>
+        <div class="stat-sub green">This month</div>
+      </div>
+
+      <div class="stat sw-card">
+        <div class="stat-head">
+          <span class="mini-tile" style="background: #fbeee0; color: #d9822b"><sw-icon name="arrowUp" [size]="14" [strokeWidth]="2" /></span>
+          Expenses
+        </div>
+        <div class="stat-amt sw-money">{{ s.expense | swMoney }}</div>
+        <div class="stat-sub amber">Across {{ s.breakdown.length }} categories</div>
+      </div>
+
+      <div class="stat sw-card">
+        <div class="stat-head">
+          <span class="mini-tile" style="background: #eae7fa; color: #7568c4"><sw-icon name="piggy" [size]="14" [strokeWidth]="2" /></span>
+          Saved
+        </div>
+        <div class="stat-amt sw-money">{{ s.savings | swMoney }}</div>
+        <div class="stat-sub green">{{ savedPct() }}% of income</div>
+      </div>
+    </div>
+
+    <!-- quick actions -->
+    <div class="actions">
+      @for (q of quickActions; track q.title) {
+        <a class="action" [routerLink]="q.link">
+          <span class="tile40" [style.background]="q.bg" [style.color]="q.color"><sw-icon [name]="q.icon" [size]="20" /></span>
+          <span class="action-text">
+            <span class="action-title">{{ q.title }}</span>
+            <span class="action-sub">{{ q.sub }}</span>
+          </span>
+        </a>
+      }
+    </div>
+
+    <!-- spending by category + monthly budget -->
+    <div class="mid">
+      <div class="sw-card pad22">
+        <div class="card-head">
+          <div>
+            <div class="card-title">Spending by category</div>
+            <div class="card-sub">{{ monthSvc.label() }}</div>
+          </div>
+          <a class="details-btn" routerLink="/analytics">Details</a>
+        </div>
+        @if (s.breakdown.length > 0) {
+          <div class="donut-row">
+            <div class="donut-wrap">
+              <sw-donut-chart [segments]="segments()" [size]="150" [stroke]="20" />
+              <div class="donut-center">
+                <div class="dc-label">Total spent</div>
+                <div class="dc-amt sw-money">{{ s.expense | swMoney }}</div>
+              </div>
+            </div>
+            <div class="legend">
+              @for (b of topCats(); track b.category.id) {
+                <div class="legend-row">
+                  <span class="dot" [style.background]="b.category.color"></span>
+                  <span class="legend-name">{{ b.category.name }}</span>
+                  <span class="legend-amt sw-money">{{ b.spent | swMoney }}</span>
+                  <span class="legend-pct">{{ b.pct }}%</span>
+                </div>
+              }
+            </div>
+          </div>
+        } @else {
+          <sw-empty-state icon="analytics" title="Nothing spent yet" hint="Your category breakdown shows up once you log expenses." />
+        }
+      </div>
+
+      <div class="sw-card pad22 budget-card">
+        <div class="card-title">Monthly budget</div>
+        <div class="card-sub">{{ s.expense | swMoney }} of {{ s.budgetTotal | swMoney }}</div>
+        <div class="budget-bar">
+          <sw-progress-bar [pct]="s.budgetPct" [height]="12" />
+        </div>
+        <div class="budget-meta">
+          <span class="used">{{ s.budgetPct }}% used</span>
+          <span>{{ s.budgetLeft | swMoney }} left</span>
+        </div>
+        <div class="budget-mini">
+          @for (b of budgetMini(); track b.usage.category.id) {
+            <div>
+              <div class="mini-head">
+                <span class="mini-name">{{ b.usage.category.name }}</span>
+                <span class="mini-label" [style.color]="b.color">{{ b.label }}</span>
+              </div>
+              <sw-progress-bar [pct]="b.usage.pct" [height]="6" [color]="b.color" />
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- insight banner -->
+    @if (insight(); as ins) {
+      <div class="insight" [class.great]="ins.tag === 'great'">
+        <span class="insight-tile"><sw-icon [name]="ins.tag === 'great' ? 'sparkles' : 'alert'" [size]="20" /></span>
+        <div class="insight-body">
+          <div class="insight-title">{{ ins.title }}</div>
+          <div class="insight-desc">{{ ins.description }}</div>
+        </div>
+        <a class="insight-btn" routerLink="/analytics">See insights</a>
+      </div>
+    }
+
+    <!-- recent transactions -->
+    <div class="sw-card recent">
+      <div class="recent-head">
+        <div class="card-title">Recent transactions</div>
+        <a class="view-all" routerLink="/transactions">View all <sw-icon name="chevR" [size]="14" /></a>
+      </div>
+      @for (t of s.recentTransactions; track t.id) {
+        <div class="tx-row">
+          <span class="tile40" [style.background]="catFor(t.categoryId).bg" [style.color]="catFor(t.categoryId).color">
+            <sw-icon [name]="catFor(t.categoryId).icon" [size]="18" />
+          </span>
+          <div class="tx-main">
+            <div class="tx-merchant">{{ t.merchant }}</div>
+            <div class="tx-sub">{{ catFor(t.categoryId).name }} · {{ fmtDate(t.date) }}</div>
+          </div>
+          <div class="tx-right">
+            <div class="tx-amt sw-money" [class.income]="t.amount > 0">{{ t.amount | swMoney: 'signed' }}</div>
+            <div class="tx-method">{{ t.paymentMethod }}</div>
+          </div>
+        </div>
+      } @empty {
+        <sw-empty-state icon="tx" title="No transactions yet" hint="Add your first expense and it will show up here." />
+      }
+    </div>
+
+  } @else {
+    <div class="loading"><div class="spinner"></div></div>
+  }
+</div>

@@ -1,0 +1,77 @@
+<div class="page sw-rise">
+  @if (summary(); as s) {
+    <section class="hero">
+      <div class="deco"></div>
+      <div class="donut-wrap">
+        <sw-donut-chart
+          [segments]="heroSegments()"
+          [size]="120"
+          [stroke]="14"
+          trackColor="rgba(255,255,255,.18)"
+        />
+        <span class="donut-label">{{ s.budgetPct }}%</span>
+      </div>
+      <div class="hero-text">
+        <div class="hero-kicker">Monthly budget · {{ monthSvc.label() }}</div>
+        <div class="hero-amount sw-money">
+          {{ s.expense | swMoney: 'abs' }}
+          <span class="of">of {{ s.budgetTotal | swMoney: 'abs' }}</span>
+        </div>
+        <div class="hero-sub">{{ s.budgetLeft | swMoney: 'abs' }} left to spend · resets on the 1st</div>
+      </div>
+      <button type="button" class="hero-edit" (click)="toggleEdit()">Edit budgets</button>
+    </section>
+
+    @if (s.budgetUsage.length === 0) {
+      <div class="sw-card">
+        <sw-empty-state icon="budget" title="No budgets yet" hint="Set a monthly limit per category to start tracking." />
+      </div>
+    } @else {
+      <div class="grid">
+        @for (u of s.budgetUsage; track u.category.id) {
+          <article class="sw-card b-card">
+            <div class="b-head">
+              <span class="tile" [style.background]="u.category.bg" [style.color]="u.category.color">
+                <sw-icon [name]="u.category.icon" [size]="20" />
+              </span>
+              <div class="b-info">
+                <div class="b-name">{{ u.category.name }}</div>
+                <div class="b-sub">
+                  <span>{{ u.spent | swMoney: 'abs' }} of</span>
+                  @if (editing()) {
+                    <input
+                      type="number"
+                      class="sw-input budget-input"
+                      min="0"
+                      [value]="drafts()[u.category.id]"
+                      (input)="updateDraft(u.category.id, $event)"
+                    />
+                  } @else {
+                    <span>{{ u.budget | swMoney: 'abs' }}</span>
+                  }
+                </div>
+              </div>
+              <span class="chip" [class]="'chip ' + u.status">{{ chipLabel(u.status) }}</span>
+            </div>
+            <sw-progress-bar [pct]="u.pct" [height]="8" [color]="barColor(u.status)" />
+            <div class="b-foot">
+              <span class="pct-label" [style.color]="statusColor(u.status)">{{ u.pct }}% used</span>
+              @if (remaining(u.spent, u.budget) >= 0) {
+                <span class="remain">{{ remaining(u.spent, u.budget) | swMoney: 'abs' }} left</span>
+              } @else {
+                <span class="remain over">Over by {{ remaining(u.spent, u.budget) | swMoney: 'abs' }}</span>
+              }
+            </div>
+          </article>
+        }
+      </div>
+    }
+
+    @if (editing()) {
+      <div class="edit-bar">
+        <button type="button" class="sw-btn-secondary" (click)="cancelEdit()">Cancel</button>
+        <button type="button" class="sw-btn-primary" [disabled]="saving()" (click)="save()">Save budgets</button>
+      </div>
+    }
+  }
+</div>

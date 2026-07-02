@@ -1,0 +1,103 @@
+<div class="page sw-rise">
+  <!-- generator -->
+  <section class="sw-card gen">
+    <h2 class="gen-title">Generate a report</h2>
+
+    <span class="sw-label">Date range</span>
+    <div class="pills">
+      @for (p of presets; track p.id) {
+        <button type="button" class="pill" [class.selected]="range() === p.id" (click)="range.set(p.id)">
+          {{ p.label }}
+        </button>
+      }
+    </div>
+
+    <span class="sw-label">Format</span>
+    <div class="formats">
+      @for (f of formats; track f.id) {
+        <button type="button" class="fmt" [class.selected]="format() === f.id" (click)="format.set(f.id)">
+          <sw-icon [name]="f.icon" [size]="18" />
+          <span class="fmt-text">
+            <span class="fmt-label">{{ f.label }}</span>
+            <span class="fmt-sub">{{ f.sub }}</span>
+          </span>
+        </button>
+      }
+    </div>
+
+    <span class="sw-label">Include</span>
+    <div class="includes">
+      @for (item of includeOptions; track item) {
+        <button type="button" class="inc-row" (click)="toggleInclude(item)">
+          <span class="box" [class.checked]="include().has(item)">
+            @if (include().has(item)) {
+              <sw-icon name="checkPlain" [size]="11" />
+            }
+          </span>
+          {{ item }}
+        </button>
+      }
+    </div>
+
+    <button type="button" class="sw-btn-primary export-btn" [disabled]="exporting()" (click)="exportReport()">
+      <sw-icon name="download" [size]="17" />
+      Export {{ format() === 'pdf' ? 'PDF' : 'CSV' }}
+    </button>
+  </section>
+
+  <!-- right column -->
+  <div class="side">
+    <section class="sw-card summary">
+      <div class="card-title">Summary</div>
+      <div class="card-sub">{{ rangeLabel() }}</div>
+      @if (summary(); as s) {
+        <div class="row">
+          <span class="row-label">Income</span>
+          <span class="row-val sw-money income">{{ s.income | swMoney: 'abs' }}</span>
+        </div>
+        <div class="row">
+          <span class="row-label">Expenses</span>
+          <span class="row-val sw-money expense">{{ s.expense | swMoney: 'abs' }}</span>
+        </div>
+        <div class="row net">
+          <span class="row-label bold">Net saved</span>
+          <span class="row-val sw-money saved">{{ s.savings | swMoney }}</span>
+        </div>
+        <div class="row muted">
+          <span>Transactions</span>
+          <span>{{ s.transactionCount }}</span>
+        </div>
+        <div class="row muted">
+          <span>Top category</span>
+          @if (s.topCategory; as top) {
+            <span>{{ top.name }} · {{ top.spent | swMoney: 'abs' }}</span>
+          } @else {
+            <span>—</span>
+          }
+        </div>
+      }
+    </section>
+
+    <section class="sw-card exports">
+      <div class="card-title">Recent exports</div>
+      @if (history().length === 0) {
+        <div class="empty-hint">No exports yet</div>
+      } @else {
+        @for (item of history(); track item.id) {
+          <div class="hist-row">
+            <span class="hist-tile">
+              <sw-icon [name]="historyIcon(item.format)" [size]="17" />
+            </span>
+            <div class="hist-info">
+              <div class="hist-name">{{ item.name }}</div>
+              <div class="hist-sub">{{ item.createdAt | date: 'MMM d' }} · {{ item.size }}</div>
+            </div>
+            <button type="button" class="hist-dl" (click)="historyRowClick()" aria-label="Download">
+              <sw-icon name="download" [size]="15" />
+            </button>
+          </div>
+        }
+      }
+    </section>
+  </div>
+</div>

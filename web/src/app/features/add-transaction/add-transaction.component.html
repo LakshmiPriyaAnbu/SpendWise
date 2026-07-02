@@ -1,0 +1,134 @@
+<div class="page sw-rise">
+  <!-- LEFT: form card -->
+  <div class="form sw-card">
+    <div class="type-track">
+      <button type="button" [class.active]="type() === 'expense'" (click)="setType('expense')">
+        <sw-icon name="arrowUp" [size]="15" />Expense
+      </button>
+      <button type="button" [class.active]="type() === 'income'" (click)="setType('income')">
+        <sw-icon name="arrowDown" [size]="15" />Income
+      </button>
+    </div>
+
+    <label class="sw-label">Amount</label>
+    <div class="amount-box">
+      <span class="rupee">₹</span>
+      <input
+        type="text"
+        inputmode="numeric"
+        [value]="amountText()"
+        (input)="onAmount($event)"
+        placeholder="0"
+      />
+    </div>
+
+    <div class="fields">
+      <div>
+        <label class="sw-label">Merchant / Source</label>
+        <input class="sw-input" type="text" [value]="merchant()" (input)="onMerchant($event)" />
+      </div>
+      <div>
+        <label class="sw-label">Date</label>
+        <input class="sw-input" type="date" [value]="date()" (input)="onDate($event)" />
+      </div>
+
+      <div class="span2">
+        <label class="sw-label">Category</label>
+        <div class="chips">
+          @for (c of categories(); track c.id) {
+            <button
+              type="button"
+              class="cat-chip"
+              [class.selected]="c.id === selectedCategoryId()"
+              [style.background]="c.id === selectedCategoryId() ? c.bg : '#fff'"
+              [style.color]="c.id === selectedCategoryId() ? c.color : null"
+              [style.border-color]="c.id === selectedCategoryId() ? c.color : null"
+              (click)="selectCategory(c.id)"
+            >
+              <span class="dot" [style.background]="c.color"></span>{{ c.name }}
+            </button>
+          }
+          <button type="button" class="cat-chip new-cat" (click)="startAddCategory()">
+            <span class="plus">+</span>New category
+          </button>
+        </div>
+        @if (addingCat()) {
+          <div class="new-cat-row">
+            <input
+              type="text"
+              autofocus
+              placeholder="e.g. Education, Pets, Gifts…"
+              [value]="newCatName()"
+              (input)="onNewCatName($event)"
+              (keydown.enter)="addCategory()"
+              (keydown.escape)="cancelAddCategory()"
+            />
+            <button type="button" class="add-btn" (click)="addCategory()">Add</button>
+            <button type="button" class="cancel-btn" (click)="cancelAddCategory()">Cancel</button>
+          </div>
+        }
+      </div>
+
+      <div>
+        <label class="sw-label">Payment method</label>
+        <select class="sw-input" [value]="paymentMethod()" (change)="onPaymentMethod($event)">
+          @for (pm of paymentMethods; track pm) {
+            <option [value]="pm">{{ pm }}</option>
+          }
+        </select>
+      </div>
+      <div>
+        <label class="sw-label">Attach receipt</label>
+        <button type="button" class="receipt-btn" routerLink="/scan">
+          <sw-icon name="camera" [size]="16" />Scan or upload
+        </button>
+      </div>
+
+      <div class="span2">
+        <label class="sw-label">Notes <span class="opt">(optional)</span></label>
+        <input class="sw-input" type="text" placeholder="Add a note…" [value]="notes()" (input)="onNotes($event)" />
+      </div>
+    </div>
+
+    <div class="footer">
+      <button type="button" class="save-btn" (click)="save()">Save transaction</button>
+      <button type="button" class="sw-btn-secondary cancel" routerLink="/dashboard">Cancel</button>
+    </div>
+  </div>
+
+  <!-- RIGHT: preview + tips -->
+  <div class="side">
+    <div class="preview sw-card">
+      <div class="head">Live preview</div>
+      <div class="pv-row">
+        <span class="pv-tile" [style.background]="previewCategory().bg" [style.color]="previewCategory().color">
+          <sw-icon [name]="previewCategory().icon" [size]="20" />
+        </span>
+        <div class="pv-text">
+          <div class="pv-merchant" [class.placeholder]="!merchant().trim()">
+            {{ merchant().trim() || 'Merchant' }}
+          </div>
+          <div class="pv-sub">{{ previewCategory().name }} · Today</div>
+        </div>
+        <div class="pv-amt sw-money" [class.income]="type() === 'income'">
+          @if (previewPaise() === 0) {
+            ₹0
+          } @else if (type() === 'income') {
+            {{ previewPaise() | swMoney: 'signed' }}
+          } @else {
+            {{ -previewPaise() | swMoney }}
+          }
+        </div>
+      </div>
+    </div>
+
+    <div class="tips">
+      <div class="tips-head"><sw-icon name="sparkles" [size]="15" />Quick tips</div>
+      <div class="tips-body">
+        · Scanning a receipt fills these fields automatically<br />
+        · We auto-suggest a category from the merchant<br />
+        · Everything can be edited before it's saved
+      </div>
+    </div>
+  </div>
+</div>
