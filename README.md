@@ -2,6 +2,8 @@
 
 SpendWise is a full-stack personal finance tracker with receipt scanning, statement import, transaction categorization, budget tracking, spending analytics, and exportable financial reports.
 
+**Live demo:** https://spendwise-vrcw.onrender.com/login (free tier — first visit after idle takes ~1 min to wake)
+
 Monorepo:
 
 | Folder | What it is |
