@@ -12,7 +12,9 @@ services:
     name: spendwise
     runtime: node
     plan: free # spins down when idle (~1 min cold start); starter keeps it always-on
-    buildCommand: npm install && npm run build
+    # --include=dev: NODE_ENV=production also applies at build time and would
+    # otherwise skip the devDependencies the build needs (tsc, esbuild, prisma, ng)
+    buildCommand: npm install --include=dev && npm run build
     startCommand: cd server && npx prisma migrate deploy && node dist/main.js
     healthCheckPath: /api/health
     envVars:
