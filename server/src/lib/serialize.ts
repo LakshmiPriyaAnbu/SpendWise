@@ -27,3 +27,13 @@ export function monthBounds(month: string): { start: Date; end: Date } {
 export function currentMonth(): string {
   return new Date().toISOString().slice(0, 7);
 }
+
+/** True when the value is a valid yyyy-mm month string. */
+export function isMonth(value: unknown): value is string {
+  return typeof value === 'string' && /^\d{4}-\d{2}$/.test(value);
+}
+
+/** The value when it is a valid yyyy-mm month string, otherwise the current month. */
+export function monthOrCurrent(value: unknown): string {
+  return isMonth(value) ? value : currentMonth();
+}

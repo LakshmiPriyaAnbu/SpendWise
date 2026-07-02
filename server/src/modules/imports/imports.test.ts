@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { parseCsv } from './imports.router';
+import { parseCsv } from './imports.service';
 import { HttpError } from '../../lib/http';
 
 describe('parseCsv', () => {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { computeInsights } from './insights';
-import { budgetStatus } from './analytics.router';
+import { budgetStatus } from './analytics.service';
 
 const flatTotals = { income: 0, expense: 0, prevIncome: 0, prevExpense: 0 };
 

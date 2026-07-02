@@ -2,6 +2,7 @@ import type { NextFunction, Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import { env } from '../lib/env';
 import { HttpError } from '../lib/http';
+import { messages } from '../lib/messages';
 
 declare module 'express-serve-static-core' {
   interface Request {
@@ -12,7 +13,7 @@ declare module 'express-serve-static-core' {
 export function authMiddleware(req: Request, _res: Response, next: NextFunction) {
   const header = req.headers.authorization;
   if (!header?.startsWith('Bearer ')) {
-    return next(new HttpError(401, 'UNAUTHORIZED', 'Missing bearer token'));
+    return next(new HttpError(401, 'UNAUTHORIZED', messages.auth.missingToken));
   }
   try {
     const payload = jwt.verify(header.slice(7), env.jwtSecret) as { sub?: string };
@@ -20,6 +21,6 @@ export function authMiddleware(req: Request, _res: Response, next: NextFunction)
     req.userId = payload.sub;
     next();
   } catch {
-    next(new HttpError(401, 'UNAUTHORIZED', 'Invalid or expired token'));
+    next(new HttpError(401, 'UNAUTHORIZED', messages.auth.invalidToken));
   }
 }
