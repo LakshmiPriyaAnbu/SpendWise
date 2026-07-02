@@ -2,19 +2,12 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { Router, RouterLink } from '@angular/router';
 import type { Category, TxType } from '@spendwise/shared';
 import { ApiService } from '../../core/api.service';
+import { FALLBACK_CATEGORY } from '../../core/category.util';
+import { COPY } from '../../core/copy';
 import { MoneyPipe } from '../../core/money.pipe';
+import { parsePositiveRupees, toPaise } from '../../core/money.util';
 import { ToastService } from '../../core/toast.service';
 import { SwIcon } from '../../shared/ui/icon.component';
-
-const FALLBACK_CATEGORY: Category = {
-  id: '',
-  key: 'other',
-  name: 'Other',
-  color: '#8A9691',
-  bg: '#f2f5f3',
-  icon: 'other',
-  isCustom: false,
-};
 
 function todayLocal(): string {
   const d = new Date();
@@ -35,7 +28,9 @@ export class AddTransactionComponent {
   private toast = inject(ToastService);
   private router = inject(Router);
 
-  readonly paymentMethods = ['UPI · GPay', 'UPI · PhonePe', 'Credit card', 'Debit card', 'Cash', 'Bank transfer'];
+  protected readonly copy = COPY;
+
+  readonly paymentMethods: readonly string[] = COPY.addTransaction.paymentMethods;
 
   // form state
   readonly type = signal<TxType>('expense');
@@ -56,8 +51,8 @@ export class AddTransactionComponent {
     () => this.categories().find((c) => c.id === this.selectedCategoryId()) ?? FALLBACK_CATEGORY,
   );
   readonly previewPaise = computed(() => {
-    const rupees = parseFloat(this.amountText());
-    return Number.isFinite(rupees) && rupees > 0 ? Math.round(rupees * 100) : 0;
+    const rupees = parsePositiveRupees(this.amountText());
+    return rupees == null ? 0 : toPaise(rupees);
   });
 
   constructor() {
@@ -111,7 +106,7 @@ export class AddTransactionComponent {
   async addCategory(): Promise<void> {
     const name = this.newCatName().trim();
     if (!name) {
-      this.toast.show('Enter a category name');
+      this.toast.show(COPY.addTransaction.toasts.enterCategoryName);
       return;
     }
     try {
@@ -119,29 +114,29 @@ export class AddTransactionComponent {
       this.categories.update((cats) => [...cats, created]);
       this.selectedCategoryId.set(created.id);
       this.addingCat.set(false);
-      this.toast.show('Category added');
+      this.toast.show(COPY.addTransaction.toasts.categoryAdded);
     } catch {
-      this.toast.show('Could not add category');
+      this.toast.show(COPY.addTransaction.toasts.couldNotAddCategory);
     }
   }
 
   async save(): Promise<void> {
-    const rupees = parseFloat(this.amountText());
-    if (!(rupees > 0)) {
-      this.toast.show('Enter an amount greater than 0');
+    const rupees = parsePositiveRupees(this.amountText());
+    if (rupees == null) {
+      this.toast.show(COPY.addTransaction.toasts.enterAmount);
       return;
     }
     const merchant = this.merchant().trim();
     if (!merchant) {
-      this.toast.show('Enter a merchant or source');
+      this.toast.show(COPY.addTransaction.toasts.enterMerchant);
       return;
     }
     const categoryId = this.selectedCategoryId();
     if (!categoryId) {
-      this.toast.show('Pick a category');
+      this.toast.show(COPY.addTransaction.toasts.pickCategory);
       return;
     }
-    const paise = Math.round(rupees * 100);
+    const paise = toPaise(rupees);
     const amount = this.type() === 'expense' ? -paise : paise;
     try {
       await this.api.createTransaction({
@@ -152,10 +147,10 @@ export class AddTransactionComponent {
         amount,
         notes: this.notes().trim() || undefined,
       });
-      this.toast.show('Transaction saved');
+      this.toast.show(COPY.addTransaction.toasts.transactionSaved);
       this.router.navigateByUrl('/transactions');
     } catch {
-      this.toast.show('Could not save transaction');
+      this.toast.show(COPY.addTransaction.toasts.couldNotSave);
     }
   }
 }

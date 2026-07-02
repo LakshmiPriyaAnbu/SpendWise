@@ -5,6 +5,8 @@ import { ApiService } from '../../core/api.service';
 import { ToastService } from '../../core/toast.service';
 import { MoneyPipe } from '../../core/money.pipe';
 import { SwIcon } from '../../shared/ui/icon.component';
+import { COPY } from '../../core/copy';
+import { downloadBlob } from '../../core/download.util';
 
 interface RangePreset {
   id: ReportRange;
@@ -29,19 +31,21 @@ export class ReportsComponent {
   private api = inject(ApiService);
   private toast = inject(ToastService);
 
+  protected readonly copy = COPY;
+
   readonly presets: RangePreset[] = [
-    { id: 'this-month', label: 'This month' },
-    { id: 'last-month', label: 'Last month' },
-    { id: 'last-3-months', label: 'Last 3 months' },
-    { id: 'this-year', label: 'This year' },
+    { id: 'this-month', label: COPY.reports.presets.thisMonth },
+    { id: 'last-month', label: COPY.reports.presets.lastMonth },
+    { id: 'last-3-months', label: COPY.reports.presets.last3Months },
+    { id: 'this-year', label: COPY.reports.presets.thisYear },
   ];
 
   readonly formats: FormatOption[] = [
-    { id: 'pdf', label: 'PDF', sub: 'Formatted report', icon: 'reports' },
-    { id: 'csv', label: 'CSV', sub: 'Raw spreadsheet', icon: 'download' },
+    { id: 'pdf', label: COPY.reports.formats.pdf.label, sub: COPY.reports.formats.pdf.sub, icon: 'reports' },
+    { id: 'csv', label: COPY.reports.formats.csv.label, sub: COPY.reports.formats.csv.sub, icon: 'download' },
   ];
 
-  readonly includeOptions = ['Transaction list', 'Category summary', 'Budget vs actual', 'Charts & insights'];
+  readonly includeOptions = COPY.reports.includeOptions;
 
   readonly range = signal<ReportRange>('this-month');
   readonly format = signal<ReportFormat>('pdf');
@@ -53,7 +57,7 @@ export class ReportsComponent {
   readonly exporting = signal(false);
 
   readonly rangeLabel = computed(
-    () => this.presets.find((p) => p.id === this.range())?.label ?? 'This month',
+    () => this.presets.find((p) => p.id === this.range())?.label ?? COPY.reports.presets.thisMonth,
   );
 
   constructor() {
@@ -69,7 +73,7 @@ export class ReportsComponent {
       const s = await this.api.reportSummary(range);
       if (this.range() === range) this.summary.set(s);
     } catch {
-      this.toast.show('Could not load report summary');
+      this.toast.show(COPY.reports.toasts.couldNotLoadSummary);
     }
   }
 
@@ -95,7 +99,7 @@ export class ReportsComponent {
   }
 
   historyRowClick(): void {
-    this.toast.show('Saved to downloads history only');
+    this.toast.show(COPY.reports.toasts.savedToDownloadsOnly);
   }
 
   async exportReport(): Promise<void> {
@@ -108,16 +112,11 @@ export class ReportsComponent {
         format,
         include: [...this.include()],
       });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `SpendWise-report.${format}`;
-      link.click();
-      URL.revokeObjectURL(url);
-      this.toast.show('Report exported · check downloads');
+      downloadBlob(blob, COPY.reports.downloadFilename(format));
+      this.toast.show(COPY.reports.toasts.exported);
       await this.loadHistory();
     } catch {
-      this.toast.show('Export failed');
+      this.toast.show(COPY.reports.toasts.exportFailed);
     } finally {
       this.exporting.set(false);
     }

@@ -21,7 +21,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  background: #fff;
+  background: var(--sw-white);
   border: 1px solid var(--sw-border-alt);
   border-radius: 12px;
   height: 42px;
@@ -44,7 +44,7 @@
   display: flex;
   align-items: center;
   gap: 2px;
-  background: #fff;
+  background: var(--sw-white);
   border: 1px solid var(--sw-border-alt);
   border-radius: 12px;
   height: 42px;
@@ -108,14 +108,14 @@
 }
 
 .row {
-  border-bottom: 1px solid #f3f6f4;
+  border-bottom: 1px solid var(--sw-line-soft);
 
   &:last-of-type {
     border-bottom: none;
   }
 
   &:hover {
-    background: #f8faf9;
+    background: var(--sw-tint-bg);
   }
 }
 
@@ -181,7 +181,7 @@
   font-size: 13.5px;
   font-weight: 600;
   color: var(--sw-text);
-  background: #f6fbf9;
+  background: var(--sw-mint-tint);
   outline: none;
 }
 

@@ -3,14 +3,14 @@
   <div class="form sw-card">
     <div class="type-track">
       <button type="button" [class.active]="type() === 'expense'" (click)="setType('expense')">
-        <sw-icon name="arrowUp" [size]="15" />Expense
+        <sw-icon name="arrowUp" [size]="15" />{{ copy.addTransaction.expense }}
       </button>
       <button type="button" [class.active]="type() === 'income'" (click)="setType('income')">
-        <sw-icon name="arrowDown" [size]="15" />Income
+        <sw-icon name="arrowDown" [size]="15" />{{ copy.addTransaction.income }}
       </button>
     </div>
 
-    <label class="sw-label">Amount</label>
+    <label class="sw-label">{{ copy.addTransaction.amountLabel }}</label>
     <div class="amount-box">
       <span class="rupee">₹</span>
       <input
@@ -24,23 +24,23 @@
 
     <div class="fields">
       <div>
-        <label class="sw-label">Merchant / Source</label>
+        <label class="sw-label">{{ copy.addTransaction.merchantLabel }}</label>
         <input class="sw-input" type="text" [value]="merchant()" (input)="onMerchant($event)" />
       </div>
       <div>
-        <label class="sw-label">Date</label>
+        <label class="sw-label">{{ copy.addTransaction.dateLabel }}</label>
         <input class="sw-input" type="date" [value]="date()" (input)="onDate($event)" />
       </div>
 
       <div class="span2">
-        <label class="sw-label">Category</label>
+        <label class="sw-label">{{ copy.addTransaction.categoryLabel }}</label>
         <div class="chips">
           @for (c of categories(); track c.id) {
             <button
               type="button"
               class="cat-chip"
               [class.selected]="c.id === selectedCategoryId()"
-              [style.background]="c.id === selectedCategoryId() ? c.bg : '#fff'"
+              [style.background]="c.id === selectedCategoryId() ? c.bg : 'var(--sw-white)'"
               [style.color]="c.id === selectedCategoryId() ? c.color : null"
               [style.border-color]="c.id === selectedCategoryId() ? c.color : null"
               (click)="selectCategory(c.id)"
@@ -49,7 +49,7 @@
             </button>
           }
           <button type="button" class="cat-chip new-cat" (click)="startAddCategory()">
-            <span class="plus">+</span>New category
+            <span class="plus">+</span>{{ copy.addTransaction.newCategory }}
           </button>
         </div>
         @if (addingCat()) {
@@ -57,20 +57,20 @@
             <input
               type="text"
               autofocus
-              placeholder="e.g. Education, Pets, Gifts…"
+              [placeholder]="copy.addTransaction.newCategoryPlaceholder"
               [value]="newCatName()"
               (input)="onNewCatName($event)"
               (keydown.enter)="addCategory()"
               (keydown.escape)="cancelAddCategory()"
             />
-            <button type="button" class="add-btn" (click)="addCategory()">Add</button>
-            <button type="button" class="cancel-btn" (click)="cancelAddCategory()">Cancel</button>
+            <button type="button" class="add-btn" (click)="addCategory()">{{ copy.addTransaction.addBtn }}</button>
+            <button type="button" class="cancel-btn" (click)="cancelAddCategory()">{{ copy.common.cancel }}</button>
           </div>
         }
       </div>
 
       <div>
-        <label class="sw-label">Payment method</label>
+        <label class="sw-label">{{ copy.addTransaction.paymentMethodLabel }}</label>
         <select class="sw-input" [value]="paymentMethod()" (change)="onPaymentMethod($event)">
           @for (pm of paymentMethods; track pm) {
             <option [value]="pm">{{ pm }}</option>
@@ -78,37 +78,37 @@
         </select>
       </div>
       <div>
-        <label class="sw-label">Attach receipt</label>
+        <label class="sw-label">{{ copy.addTransaction.attachReceiptLabel }}</label>
         <button type="button" class="receipt-btn" routerLink="/scan">
-          <sw-icon name="camera" [size]="16" />Scan or upload
+          <sw-icon name="camera" [size]="16" />{{ copy.addTransaction.scanOrUpload }}
         </button>
       </div>
 
       <div class="span2">
-        <label class="sw-label">Notes <span class="opt">(optional)</span></label>
-        <input class="sw-input" type="text" placeholder="Add a note…" [value]="notes()" (input)="onNotes($event)" />
+        <label class="sw-label">{{ copy.addTransaction.notesLabel }} <span class="opt">{{ copy.addTransaction.notesOptional }}</span></label>
+        <input class="sw-input" type="text" [placeholder]="copy.addTransaction.notesPlaceholder" [value]="notes()" (input)="onNotes($event)" />
       </div>
     </div>
 
     <div class="footer">
-      <button type="button" class="save-btn" (click)="save()">Save transaction</button>
-      <button type="button" class="sw-btn-secondary cancel" routerLink="/dashboard">Cancel</button>
+      <button type="button" class="save-btn" (click)="save()">{{ copy.addTransaction.saveBtn }}</button>
+      <button type="button" class="sw-btn-secondary cancel" routerLink="/dashboard">{{ copy.common.cancel }}</button>
     </div>
   </div>
 
   <!-- RIGHT: preview + tips -->
   <div class="side">
     <div class="preview sw-card">
-      <div class="head">Live preview</div>
+      <div class="head">{{ copy.addTransaction.livePreview }}</div>
       <div class="pv-row">
         <span class="pv-tile" [style.background]="previewCategory().bg" [style.color]="previewCategory().color">
           <sw-icon [name]="previewCategory().icon" [size]="20" />
         </span>
         <div class="pv-text">
           <div class="pv-merchant" [class.placeholder]="!merchant().trim()">
-            {{ merchant().trim() || 'Merchant' }}
+            {{ merchant().trim() || copy.addTransaction.merchantFallback }}
           </div>
-          <div class="pv-sub">{{ previewCategory().name }} · Today</div>
+          <div class="pv-sub">{{ previewCategory().name }} · {{ copy.addTransaction.todayLabel }}</div>
         </div>
         <div class="pv-amt sw-money" [class.income]="type() === 'income'">
           @if (previewPaise() === 0) {
@@ -123,11 +123,11 @@
     </div>
 
     <div class="tips">
-      <div class="tips-head"><sw-icon name="sparkles" [size]="15" />Quick tips</div>
+      <div class="tips-head"><sw-icon name="sparkles" [size]="15" />{{ copy.addTransaction.quickTips }}</div>
       <div class="tips-body">
-        · Scanning a receipt fills these fields automatically<br />
-        · We auto-suggest a category from the merchant<br />
-        · Everything can be edited before it's saved
+        · {{ copy.addTransaction.tips[0] }}<br />
+        · {{ copy.addTransaction.tips[1] }}<br />
+        · {{ copy.addTransaction.tips[2] }}
       </div>
     </div>
   </div>

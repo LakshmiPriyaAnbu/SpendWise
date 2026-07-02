@@ -4,6 +4,7 @@ import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/auth.service';
 import { ToastService } from '../../core/toast.service';
 import { SwIcon } from '../../shared/ui/icon.component';
+import { COPY } from '../../core/copy';
 
 @Component({
   selector: 'sw-register',
@@ -16,10 +17,10 @@ import { SwIcon } from '../../shared/ui/icon.component';
           <div class="logo-tile"><sw-icon name="piggy" [size]="20" [strokeWidth]="2" /></div>
           <div class="logo-word">Spend<span>Wise</span></div>
         </div>
-        <h1>Create your account</h1>
-        <p class="sub">A few seconds to smarter spending.</p>
+        <h1>{{ copy.auth.register.title }}</h1>
+        <p class="sub">{{ copy.auth.register.subtitle }}</p>
         <form (submit)="submit($event)">
-          <label class="sw-label" for="reg-name">Name</label>
+          <label class="sw-label" for="reg-name">{{ copy.auth.register.name }}</label>
           <input
             id="reg-name"
             class="sw-input field"
@@ -28,7 +29,7 @@ import { SwIcon } from '../../shared/ui/icon.component';
             [value]="name()"
             (input)="name.set($any($event.target).value)"
           />
-          <label class="sw-label" for="reg-email">Email</label>
+          <label class="sw-label" for="reg-email">{{ copy.auth.register.email }}</label>
           <input
             id="reg-email"
             class="sw-input field"
@@ -37,7 +38,7 @@ import { SwIcon } from '../../shared/ui/icon.component';
             [value]="email()"
             (input)="email.set($any($event.target).value)"
           />
-          <label class="sw-label" for="reg-password">Password</label>
+          <label class="sw-label" for="reg-password">{{ copy.auth.register.password }}</label>
           <input
             id="reg-password"
             class="sw-input"
@@ -46,15 +47,15 @@ import { SwIcon } from '../../shared/ui/icon.component';
             [value]="password()"
             (input)="password.set($any($event.target).value)"
           />
-          <div class="hint">Minimum 8 characters</div>
+          <div class="hint">{{ copy.auth.register.minChars }}</div>
           @if (error()) {
             <div class="error">{{ error() }}</div>
           }
           <button class="sw-btn-primary submit" type="submit" [disabled]="pending()">
-            {{ pending() ? 'Creating account…' : 'Create account' }}
+            {{ pending() ? copy.auth.register.creatingAccount : copy.auth.register.createAccount }}
           </button>
         </form>
-        <div class="alt">Already have an account? <a routerLink="/login">Sign in</a></div>
+        <div class="alt">{{ copy.auth.register.alreadyHaveAccount }} <a routerLink="/login">{{ copy.auth.register.signIn }}</a></div>
       </div>
     </div>
   `,
@@ -91,7 +92,7 @@ import { SwIcon } from '../../shared/ui/icon.component';
         display: flex;
         align-items: center;
         justify-content: center;
-        color: #fff;
+        color: var(--sw-white);
         flex: none;
       }
       .logo-word {
@@ -153,6 +154,7 @@ export class RegisterComponent {
   private auth = inject(AuthService);
   private router = inject(Router);
   private toast = inject(ToastService);
+  protected readonly copy = COPY;
 
   readonly name = signal('');
   readonly email = signal('');
@@ -172,10 +174,10 @@ export class RegisterComponent {
         password: this.password(),
       });
       await this.router.navigateByUrl('/');
-      this.toast.show('Welcome to SpendWise');
+      this.toast.show(COPY.auth.register.welcomeToast);
     } catch (e) {
       const err = e as HttpErrorResponse;
-      this.error.set(err.error?.error?.message ?? 'Could not create your account. Please try again.');
+      this.error.set(err.error?.error?.message ?? COPY.auth.register.fallbackError);
     } finally {
       this.pending.set(false);
     }

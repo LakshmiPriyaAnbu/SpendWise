@@ -3,6 +3,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/auth.service';
 import { SwIcon } from '../../shared/ui/icon.component';
+import { COPY } from '../../core/copy';
 
 @Component({
   selector: 'sw-login',
@@ -15,10 +16,10 @@ import { SwIcon } from '../../shared/ui/icon.component';
           <div class="logo-tile"><sw-icon name="piggy" [size]="20" [strokeWidth]="2" /></div>
           <div class="logo-word">Spend<span>Wise</span></div>
         </div>
-        <h1>Welcome back</h1>
-        <p class="sub">Sign in to keep your spending wise.</p>
+        <h1>{{ copy.auth.login.title }}</h1>
+        <p class="sub">{{ copy.auth.login.subtitle }}</p>
         <form (submit)="submit($event)">
-          <label class="sw-label" for="login-email">Email</label>
+          <label class="sw-label" for="login-email">{{ copy.auth.login.email }}</label>
           <input
             id="login-email"
             class="sw-input field"
@@ -27,7 +28,7 @@ import { SwIcon } from '../../shared/ui/icon.component';
             [value]="email()"
             (input)="email.set($any($event.target).value)"
           />
-          <label class="sw-label" for="login-password">Password</label>
+          <label class="sw-label" for="login-password">{{ copy.auth.login.password }}</label>
           <input
             id="login-password"
             class="sw-input field"
@@ -40,10 +41,10 @@ import { SwIcon } from '../../shared/ui/icon.component';
             <div class="error">{{ error() }}</div>
           }
           <button class="sw-btn-primary submit" type="submit" [disabled]="pending()">
-            {{ pending() ? 'Signing in…' : 'Sign in' }}
+            {{ pending() ? copy.auth.login.signingIn : copy.auth.login.signIn }}
           </button>
         </form>
-        <div class="alt">New here? <a routerLink="/register">Create an account</a></div>
+        <div class="alt">{{ copy.auth.login.newHere }} <a routerLink="/register">{{ copy.auth.login.createAccount }}</a></div>
       </div>
     </div>
   `,
@@ -80,7 +81,7 @@ import { SwIcon } from '../../shared/ui/icon.component';
         display: flex;
         align-items: center;
         justify-content: center;
-        color: #fff;
+        color: var(--sw-white);
         flex: none;
       }
       .logo-word {
@@ -136,6 +137,7 @@ import { SwIcon } from '../../shared/ui/icon.component';
 export class LoginComponent {
   private auth = inject(AuthService);
   private router = inject(Router);
+  protected readonly copy = COPY;
 
   // demo convenience prefill
   readonly email = signal('lakshmi@email.com');
@@ -153,7 +155,7 @@ export class LoginComponent {
       await this.router.navigateByUrl('/');
     } catch (e) {
       const err = e as HttpErrorResponse;
-      this.error.set(err.error?.error?.message ?? 'Could not sign in. Please try again.');
+      this.error.set(err.error?.error?.message ?? COPY.auth.login.fallbackError);
     } finally {
       this.pending.set(false);
     }

@@ -21,10 +21,10 @@
     <div class="sw-card pad22">
       <div class="card-head">
         <div>
-          <div class="card-title">Spending trend</div>
-          <div class="card-sub">Last 6 months · avg {{ trendAvg() | swMoney: 'abs' }}/mo</div>
+          <div class="card-title">{{ copy.analytics.spendingTrend }}</div>
+          <div class="card-sub">{{ copy.analytics.trendSubtitle(trendAvg() | swMoney: 'abs') }}</div>
         </div>
-        <div class="trend-key"><span class="key-swatch"></span>Expenses</div>
+        <div class="trend-key"><span class="key-swatch"></span>{{ copy.analytics.expensesKey }}</div>
       </div>
       <div class="trend">
         @for (b of trendBars(); track b.label) {
@@ -40,7 +40,7 @@
     <!-- breakdown + income vs expense -->
     <div class="grid2">
       <div class="sw-card pad22">
-        <div class="card-title spaced">Category breakdown</div>
+        <div class="card-title spaced">{{ copy.analytics.categoryBreakdown }}</div>
         <div class="donut-row">
           <div class="donut-wrap">
             <sw-donut-chart [segments]="segments()" [size]="150" [stroke]="20" />
@@ -54,33 +54,33 @@
                 <span class="legend-pct">{{ b.pct }}%</span>
               </div>
             } @empty {
-              <div class="empty-note">No spending yet this month.</div>
+              <div class="empty-note">{{ copy.analytics.noSpendingNote }}</div>
             }
           </div>
         </div>
       </div>
 
       <div class="sw-card pad22 ive-card">
-        <div class="card-title">Income vs expense</div>
+        <div class="card-title">{{ copy.analytics.incomeVsExpense }}</div>
         <div class="card-sub spaced">{{ monthSvc.label() }}</div>
         <div class="ive-bars">
           <div>
             <div class="ive-head">
-              <span class="ive-name">Income</span>
+              <span class="ive-name">{{ copy.analytics.income }}</span>
               <span class="ive-amt sw-money">{{ s.income | swMoney }}</span>
             </div>
             <div class="ive-track"><div class="ive-fill income" style="width: 100%"></div></div>
           </div>
           <div>
             <div class="ive-head">
-              <span class="ive-name">Expenses</span>
+              <span class="ive-name">{{ copy.analytics.expenses }}</span>
               <span class="ive-amt sw-money">{{ s.expense | swMoney }}</span>
             </div>
             <div class="ive-track"><div class="ive-fill expense" [style.width.%]="expensePct()"></div></div>
           </div>
         </div>
         <div class="net-row">
-          <span class="net-label">Net saved</span>
+          <span class="net-label">{{ copy.analytics.netSaved }}</span>
           <span class="net-amt sw-money">{{ s.savings | swMoney }}</span>
         </div>
       </div>
@@ -89,7 +89,7 @@
     <!-- merchants + subscriptions -->
     <div class="grid2">
       <div class="sw-card pad22">
-        <div class="card-title spaced">Top merchants</div>
+        <div class="card-title spaced">{{ copy.analytics.topMerchants }}</div>
         <div class="merchants">
           @for (m of merchantBars(); track m.merchant) {
             <div>
@@ -100,14 +100,14 @@
               <div class="merchant-track"><div class="merchant-fill" [style.width.%]="m.pct"></div></div>
             </div>
           } @empty {
-            <div class="empty-note">No merchants yet this month.</div>
+            <div class="empty-note">{{ copy.analytics.noMerchantsNote }}</div>
           }
         </div>
       </div>
 
       <div class="sw-card pad22">
         <div class="card-head subs-head">
-          <div class="card-title">Subscriptions</div>
+          <div class="card-title">{{ copy.analytics.subscriptions }}</div>
           <span class="subs-chip sw-money">{{ subsTotal() | swMoney: 'abs' }}/mo</span>
         </div>
         <div class="subs">
@@ -116,12 +116,12 @@
               <span class="subs-tile"><sw-icon name="subs" [size]="16" /></span>
               <div>
                 <div class="subs-name">{{ t.merchant }}</div>
-                <div class="subs-sub">Monthly</div>
+                <div class="subs-sub">{{ copy.analytics.monthlyCadence }}</div>
               </div>
               <span class="subs-amt sw-money">{{ t.amount | swMoney: 'abs' }}</span>
             </div>
           } @empty {
-            <div class="empty-note">No subscriptions this month.</div>
+            <div class="empty-note">{{ copy.analytics.noSubscriptionsNote }}</div>
           }
         </div>
       </div>

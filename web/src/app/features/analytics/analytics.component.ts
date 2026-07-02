@@ -1,18 +1,18 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
 import type { AnalyticsSummary, Category, Transaction } from '@spendwise/shared';
 import { ApiService } from '../../core/api.service';
+import { COPY } from '../../core/copy';
 import { MoneyPipe } from '../../core/money.pipe';
 import { MonthService } from '../../core/month.service';
+import {
+  computeExpensePct,
+  computeMerchantBars,
+  computeTrendAvg,
+  computeTrendBars,
+  type TrendBar,
+} from '../../core/analytics.util';
 import { SwDonutChart } from '../../shared/ui/donut-chart.component';
 import { SwIcon } from '../../shared/ui/icon.component';
-
-interface TrendBar {
-  label: string;
-  expense: number;
-  /** px */
-  height: number;
-  current: boolean;
-}
 
 @Component({
   selector: 'sw-analytics',
@@ -24,6 +24,7 @@ interface TrendBar {
 export class AnalyticsComponent {
   private api = inject(ApiService);
   readonly monthSvc = inject(MonthService);
+  protected readonly copy = COPY;
 
   readonly summary = signal<AnalyticsSummary | null>(null);
   private readonly monthTx = signal<Transaction[]>([]);
@@ -31,22 +32,9 @@ export class AnalyticsComponent {
 
   readonly insightCards = computed(() => this.summary()?.insights.slice(0, 3) ?? []);
 
-  readonly trendAvg = computed(() => {
-    const trend = this.summary()?.trend ?? [];
-    if (trend.length === 0) return 0;
-    return Math.round(trend.reduce((sum, t) => sum + t.expense, 0) / trend.length);
-  });
+  readonly trendAvg = computed(() => computeTrendAvg(this.summary()?.trend ?? []));
 
-  readonly trendBars = computed<TrendBar[]>(() => {
-    const trend = this.summary()?.trend ?? [];
-    const max = Math.max(1, ...trend.map((t) => t.expense));
-    return trend.map((t, i) => ({
-      label: t.label,
-      expense: t.expense,
-      height: Math.round((t.expense / max) * 130),
-      current: i === trend.length - 1,
-    }));
-  });
+  readonly trendBars = computed<TrendBar[]>(() => computeTrendBars(this.summary()?.trend ?? []));
 
   readonly segments = computed(
     () => this.summary()?.breakdown.map((b) => ({ color: b.category.color, pct: b.pct })) ?? [],
@@ -54,15 +42,10 @@ export class AnalyticsComponent {
 
   readonly expensePct = computed(() => {
     const s = this.summary();
-    if (!s || s.income <= 0) return s && s.expense > 0 ? 100 : 0;
-    return Math.min(100, Math.round((s.expense / s.income) * 100));
+    return s ? computeExpensePct(s.income, s.expense) : 0;
   });
 
-  readonly merchantBars = computed(() => {
-    const merchants = this.summary()?.topMerchants ?? [];
-    const max = Math.max(1, ...merchants.map((m) => m.spent));
-    return merchants.map((m) => ({ ...m, pct: Math.round((m.spent / max) * 100) }));
-  });
+  readonly merchantBars = computed(() => computeMerchantBars(this.summary()?.topMerchants ?? []));
 
   private readonly subsCategory = computed(() => this.categories().find((c) => c.key === 'subs') ?? null);
 

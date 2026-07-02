@@ -7,21 +7,21 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
-import { HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
-import type { ApiError, Category, ImportParseResult, ImportRow } from '@spendwise/shared';
+import type { Category, ImportParseResult, ImportRow } from '@spendwise/shared';
 import { ApiService } from '../../core/api.service';
 import { ToastService } from '../../core/toast.service';
 import { MoneyPipe } from '../../core/money.pipe';
 import { SwIcon } from '../../shared/ui/icon.component';
 import { SwCategoryChip } from '../../shared/ui/category-chip.component';
+import { COPY } from '../../core/copy';
+import { errorMessage } from '../../core/http-error.util';
+import { delay } from '../../core/timing.util';
 
 type ImportStep = 'idle' | 'processing' | 'preview';
 
 /** Minimum time the processing state stays on screen, for the visual effect. */
 const MIN_PROCESS_MS = 1900;
-
-const delay = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms));
 
 @Component({
   selector: 'sw-import-statement',
@@ -31,6 +31,8 @@ const delay = (ms: number): Promise<void> => new Promise((resolve) => setTimeout
   styleUrl: './import-statement.component.scss',
 })
 export class ImportStatementComponent {
+  protected readonly copy = COPY;
+
   private api = inject(ApiService);
   private toast = inject(ToastService);
   private router = inject(Router);
@@ -90,7 +92,7 @@ export class ImportStatementComponent {
       this.rows.set(result.rows.map((row) => ({ ...row })));
       this.step.set('preview');
     } catch (err) {
-      this.toast.show(this.errorMessage(err));
+      this.toast.show(errorMessage(err));
       this.reset();
     }
   }
@@ -118,20 +120,12 @@ export class ImportStatementComponent {
           amount,
         })),
       });
-      this.toast.show(`${included.length} transactions imported`);
+      this.toast.show(COPY.importStatement.toastImported(included.length));
       void this.router.navigateByUrl('/transactions');
     } catch (err) {
-      this.toast.show(this.errorMessage(err));
+      this.toast.show(errorMessage(err));
     } finally {
       this.importing.set(false);
     }
-  }
-
-  private errorMessage(err: unknown): string {
-    if (err instanceof HttpErrorResponse) {
-      const message = (err.error as ApiError | null)?.error?.message;
-      if (message) return message;
-    }
-    return 'Something went wrong. Please try again.';
   }
 }

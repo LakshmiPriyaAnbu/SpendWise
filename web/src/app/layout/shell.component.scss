@@ -29,7 +29,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #fff;
+    color: var(--sw-white);
     flex: none;
   }
   .logo-word {
@@ -37,7 +37,7 @@
     font-weight: 700;
     font-size: 19px;
     letter-spacing: -0.3px;
-    color: #fff;
+    color: var(--sw-white);
     span {
       color: var(--sw-mint);
     }
@@ -68,7 +68,7 @@ nav {
     background: rgba(255, 255, 255, 0.05);
   }
   &.active {
-    color: #fff;
+    color: var(--sw-white);
     font-weight: 700;
     background: rgba(79, 209, 168, 0.16);
   }
@@ -118,11 +118,11 @@ nav {
     width: 36px;
     height: 36px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #f0b6d3, #c77dae);
+    background: var(--sw-gradient-avatar);
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #fff;
+    color: var(--sw-white);
     font-weight: 700;
     font-size: 14px;
     flex: none;
@@ -134,7 +134,7 @@ nav {
   .user-name {
     font-size: 13px;
     font-weight: 700;
-    color: #fff;
+    color: var(--sw-white);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -161,7 +161,7 @@ nav {
     flex: none;
     &:hover {
       background: rgba(255, 255, 255, 0.08);
-      color: #fff;
+      color: var(--sw-white);
     }
   }
 }
@@ -209,7 +209,7 @@ nav {
     display: flex;
     align-items: center;
     gap: 8px;
-    background: #fff;
+    background: var(--sw-white);
     border: 1px solid var(--sw-border-alt);
     border-radius: 12px;
     height: 40px;
@@ -230,7 +230,7 @@ nav {
     width: 40px;
     height: 40px;
     border-radius: 12px;
-    background: #fff;
+    background: var(--sw-white);
     border: 1px solid var(--sw-border-alt);
     display: flex;
     align-items: center;
@@ -247,7 +247,7 @@ nav {
       height: 7px;
       border-radius: 50%;
       background: var(--sw-warn-alt);
-      border: 2px solid #fff;
+      border: 2px solid var(--sw-white);
     }
   }
   .add-btn {

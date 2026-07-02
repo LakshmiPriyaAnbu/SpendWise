@@ -4,28 +4,12 @@ import { ApiService } from '../../core/api.service';
 import { MonthService } from '../../core/month.service';
 import { ToastService } from '../../core/toast.service';
 import { MoneyPipe } from '../../core/money.pipe';
+import { COPY } from '../../core/copy';
+import { budgetStatusLabel, budgetStatusColor, budgetBarColor } from '../../core/budget-status.util';
 import { SwIcon } from '../../shared/ui/icon.component';
 import { SwDonutChart, type DonutSegment } from '../../shared/ui/donut-chart.component';
 import { SwProgressBar } from '../../shared/ui/progress-bar.component';
 import { SwEmptyState } from '../../shared/ui/empty-state.component';
-
-const CHIP_LABELS: Record<BudgetStatus, string> = {
-  'on-track': 'On track',
-  close: 'Close',
-  over: 'Over',
-};
-
-const STATUS_COLORS: Record<BudgetStatus, string> = {
-  'on-track': '#16a06a',
-  close: '#d9822b',
-  over: '#d9503f',
-};
-
-const BAR_COLORS: Record<BudgetStatus, string> = {
-  'on-track': 'linear-gradient(90deg,#18b184,#0e7c66)',
-  close: '#d9822b',
-  over: '#d9503f',
-};
 
 @Component({
   selector: 'sw-budgets',
@@ -38,6 +22,7 @@ export class BudgetsComponent {
   private api = inject(ApiService);
   private toast = inject(ToastService);
   readonly monthSvc = inject(MonthService);
+  protected readonly copy = COPY;
 
   readonly summary = signal<AnalyticsSummary | null>(null);
   readonly editing = signal(false);
@@ -47,7 +32,7 @@ export class BudgetsComponent {
 
   readonly heroSegments = computed<DonutSegment[]>(() => {
     const s = this.summary();
-    return [{ color: '#fff', pct: Math.min(100, s?.budgetPct ?? 0) }];
+    return [{ color: 'var(--sw-white)', pct: Math.min(100, s?.budgetPct ?? 0) }];
   });
 
   constructor() {
@@ -63,20 +48,20 @@ export class BudgetsComponent {
       // only apply if the selected month hasn't changed while loading
       if (this.monthSvc.month() === month) this.summary.set(s);
     } catch {
-      this.toast.show('Could not load budgets');
+      this.toast.show(COPY.budgets.toasts.couldNotLoad);
     }
   }
 
   chipLabel(status: BudgetStatus): string {
-    return CHIP_LABELS[status];
+    return budgetStatusLabel(status);
   }
 
   statusColor(status: BudgetStatus): string {
-    return STATUS_COLORS[status];
+    return budgetStatusColor(status);
   }
 
   barColor(status: BudgetStatus): string {
-    return BAR_COLORS[status];
+    return budgetBarColor(status);
   }
 
   remaining(spent: number, budget: number): number {
@@ -117,11 +102,11 @@ export class BudgetsComponent {
         amount: Math.max(0, Math.round((drafts[u.category.id] ?? u.budget / 100) * 100)),
       }));
       await this.api.putBudgets({ month, budgets });
-      this.toast.show('Budgets updated');
+      this.toast.show(COPY.budgets.toasts.updated);
       this.editing.set(false);
       await this.load(month);
     } catch {
-      this.toast.show('Could not save budgets');
+      this.toast.show(COPY.budgets.toasts.couldNotSave);
     } finally {
       this.saving.set(false);
     }

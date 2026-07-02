@@ -8,6 +8,7 @@ import { AuthService } from '../core/auth.service';
 import { MonthService } from '../core/month.service';
 import { SwIcon } from '../shared/ui/icon.component';
 import { SwToast } from '../shared/ui/toast.component';
+import { COPY } from '../core/copy';
 
 interface NavItem {
   id: string;
@@ -16,27 +17,27 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { id: 'dashboard', label: 'Dashboard', icon: 'dashboard' },
-  { id: 'transactions', label: 'Transactions', icon: 'tx' },
-  { id: 'add', label: 'Add Transaction', icon: 'add' },
-  { id: 'scan', label: 'Scan Receipt', icon: 'scan' },
-  { id: 'import', label: 'Import Statement', icon: 'importf' },
-  { id: 'budgets', label: 'Budgets', icon: 'budget' },
-  { id: 'analytics', label: 'Analytics', icon: 'analytics' },
-  { id: 'reports', label: 'Reports', icon: 'reports' },
-  { id: 'settings', label: 'Settings', icon: 'settings' },
+  { id: 'dashboard', label: COPY.nav.dashboard, icon: 'dashboard' },
+  { id: 'transactions', label: COPY.nav.transactions, icon: 'tx' },
+  { id: 'add', label: COPY.nav.add, icon: 'add' },
+  { id: 'scan', label: COPY.nav.scan, icon: 'scan' },
+  { id: 'import', label: COPY.nav.import, icon: 'importf' },
+  { id: 'budgets', label: COPY.nav.budgets, icon: 'budget' },
+  { id: 'analytics', label: COPY.nav.analytics, icon: 'analytics' },
+  { id: 'reports', label: COPY.nav.reports, icon: 'reports' },
+  { id: 'settings', label: COPY.nav.settings, icon: 'settings' },
 ];
 
 const TITLES: Record<string, { title: string; sub: string }> = {
-  dashboard: { title: 'Good morning, Lakshmi 👋', sub: 'Your money at a glance' },
-  transactions: { title: 'Transactions', sub: 'Every rupee, accounted for' },
-  add: { title: 'Add transaction', sub: 'Log an expense or income in seconds' },
-  scan: { title: "Snap it, we'll do the typing", sub: 'Scan a receipt to auto-fill a transaction' },
-  import: { title: 'Bring in your bank data securely', sub: 'Import a statement export from your bank' },
-  budgets: { title: 'Budgets', sub: 'Keep every category on track' },
-  analytics: { title: 'Analytics', sub: 'Where your money really goes' },
-  reports: { title: 'Reports', sub: 'Export clean summaries of your finances' },
-  settings: { title: 'Settings', sub: 'Profile, preferences and privacy' },
+  dashboard: { title: '', sub: COPY.shell.titles.dashboardSub },
+  transactions: COPY.shell.titles.transactions,
+  add: COPY.shell.titles.add,
+  scan: COPY.shell.titles.scan,
+  import: COPY.shell.titles.import,
+  budgets: COPY.shell.titles.budgets,
+  analytics: COPY.shell.titles.analytics,
+  reports: COPY.shell.titles.reports,
+  settings: COPY.shell.titles.settings,
 };
 
 @Component({
@@ -51,6 +52,7 @@ export class ShellComponent {
   private router = inject(Router);
   auth = inject(AuthService);
   monthSvc = inject(MonthService);
+  protected readonly copy = COPY;
 
   navItems = NAV_ITEMS;
   overBudgetCount = signal(0);
@@ -67,7 +69,7 @@ export class ShellComponent {
   pageTitle = computed(() => {
     const t = TITLES[this.screen()] ?? TITLES['dashboard'];
     const name = this.auth.user()?.name?.split(' ')[0] ?? 'there';
-    return this.screen() === 'dashboard' ? { ...t, title: `Good morning, ${name} 👋` } : t;
+    return this.screen() === 'dashboard' ? { ...t, title: COPY.shell.greeting(name) } : t;
   });
 
   userInitial = computed(() => (this.auth.user()?.name ?? 'U').charAt(0).toUpperCase());

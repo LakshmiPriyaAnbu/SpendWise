@@ -2,6 +2,8 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import type { Settings } from '@spendwise/shared';
 import { ApiService } from '../../core/api.service';
 import { AuthService } from '../../core/auth.service';
+import { COPY } from '../../core/copy';
+import { downloadBlob } from '../../core/download.util';
 import { ToastService } from '../../core/toast.service';
 import { SwIcon } from '../../shared/ui/icon.component';
 import { SwSegmentedTabs, type SegTab } from '../../shared/ui/segmented-tabs.component';
@@ -26,6 +28,8 @@ export class SettingsComponent {
   private auth = inject(AuthService);
   private toast = inject(ToastService);
 
+  protected readonly copy = COPY;
+
   readonly user = this.auth.user;
   readonly initial = computed(() => (this.user()?.name?.charAt(0) ?? 'S').toUpperCase());
 
@@ -33,16 +37,16 @@ export class SettingsComponent {
   readonly exporting = signal(false);
 
   readonly themeTabs: SegTab[] = [
-    { id: 'light', label: 'Light' },
-    { id: 'dark', label: 'Dark' },
-    { id: 'auto', label: 'Auto' },
+    { id: 'light', label: COPY.settings.themeTabs.light },
+    { id: 'dark', label: COPY.settings.themeTabs.dark },
+    { id: 'auto', label: COPY.settings.themeTabs.auto },
   ];
 
   readonly toggleRows: ToggleRow[] = [
-    { key: 'maskAccountNumbers', label: 'Mask account numbers', sub: 'Hide digits from imported statements' },
-    { key: 'biometricLock', label: 'Biometric app lock', sub: 'Require Face ID / Touch ID to open' },
-    { key: 'autoDeleteRawUploads', label: 'Auto-delete raw uploads', sub: 'Remove receipt and statement files after processing' },
-    { key: 'usageAnalytics', label: 'Usage analytics', sub: 'Share anonymous usage data to improve SpendWise' },
+    { key: 'maskAccountNumbers', ...COPY.settings.toggles.maskAccountNumbers },
+    { key: 'biometricLock', ...COPY.settings.toggles.biometricLock },
+    { key: 'autoDeleteRawUploads', ...COPY.settings.toggles.autoDeleteRawUploads },
+    { key: 'usageAnalytics', ...COPY.settings.toggles.usageAnalytics },
   ];
 
   constructor() {
@@ -53,7 +57,7 @@ export class SettingsComponent {
     try {
       this.settings.set(await this.api.settings());
     } catch {
-      this.toast.show('Could not load settings');
+      this.toast.show(COPY.settings.toasts.couldNotLoad);
     }
   }
 
@@ -64,10 +68,10 @@ export class SettingsComponent {
     this.settings.set({ ...current, theme });
     try {
       await this.api.updateSettings({ theme });
-      this.toast.show('Preferences saved');
+      this.toast.show(COPY.settings.toasts.saved);
     } catch {
       this.settings.set(current);
-      this.toast.show('Could not save preferences');
+      this.toast.show(COPY.settings.toasts.couldNotSavePrefs);
     }
   }
 
@@ -80,7 +84,7 @@ export class SettingsComponent {
       await this.api.updateSettings({ [key]: next });
     } catch {
       this.settings.set(current);
-      this.toast.show('Could not save setting');
+      this.toast.show(COPY.settings.toasts.couldNotSaveSetting);
     }
   }
 
@@ -89,21 +93,16 @@ export class SettingsComponent {
     this.exporting.set(true);
     try {
       const blob = await this.api.exportReport({ range: 'this-year', format: 'csv', include: [] });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = 'spendwise-data.csv';
-      link.click();
-      URL.revokeObjectURL(url);
-      this.toast.show('Export downloaded');
+      downloadBlob(blob, COPY.settings.exportFilename);
+      this.toast.show(COPY.settings.toasts.exportDownloaded);
     } catch {
-      this.toast.show('Export failed');
+      this.toast.show(COPY.settings.toasts.exportFailed);
     } finally {
       this.exporting.set(false);
     }
   }
 
   deleteAccount(): void {
-    this.toast.show('Account deletion is disabled in the demo');
+    this.toast.show(COPY.settings.toasts.deleteDisabled);
   }
 }

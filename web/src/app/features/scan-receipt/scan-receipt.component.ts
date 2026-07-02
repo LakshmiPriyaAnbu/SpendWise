@@ -6,20 +6,22 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
-import { HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
-import type { ApiError, ScanResult, Category } from '@spendwise/shared';
+import type { ScanResult, Category } from '@spendwise/shared';
 import { ApiService } from '../../core/api.service';
 import { ToastService } from '../../core/toast.service';
 import { MoneyPipe } from '../../core/money.pipe';
 import { SwIcon } from '../../shared/ui/icon.component';
+import { COPY } from '../../core/copy';
+import { delay } from '../../core/timing.util';
+import { errorMessage } from '../../core/http-error.util';
+import { shortDate } from '../../core/date.util';
+import { paiseToRupeeString, parseFiniteRupees, toPaise } from '../../core/money.util';
 
 type ScanStep = 'idle' | 'processing' | 'review';
 
 /** Minimum time the scan animation stays on screen, for the visual effect. */
 const MIN_SCAN_MS = 1900;
-
-const delay = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms));
 
 @Component({
   selector: 'sw-scan-receipt',
@@ -32,6 +34,9 @@ export class ScanReceiptComponent {
   private api = inject(ApiService);
   private toast = inject(ToastService);
   private router = inject(Router);
+
+  protected readonly copy = COPY;
+  protected readonly shortDate = shortDate;
 
   private fileInput = viewChild<ElementRef<HTMLInputElement>>('fileInput');
 
@@ -91,11 +96,11 @@ export class ScanReceiptComponent {
       this.result.set(result);
       this.merchant.set(result.merchant);
       this.date.set(result.date);
-      this.totalRupees.set(this.paiseToRupees(result.total));
+      this.totalRupees.set(paiseToRupeeString(result.total));
       this.categoryId.set(result.suggestedCategoryId);
       this.step.set('review');
     } catch (err) {
-      this.toast.show(this.errorMessage(err));
+      this.toast.show(errorMessage(err));
       this.reset();
     }
   }
@@ -108,8 +113,8 @@ export class ScanReceiptComponent {
   async confirm(): Promise<void> {
     const result = this.result();
     if (!result || this.saving()) return;
-    const rupees = Number.parseFloat(this.totalRupees());
-    const totalPaise = Number.isFinite(rupees) ? Math.round(rupees * 100) : result.total;
+    const rupees = parseFiniteRupees(this.totalRupees());
+    const totalPaise = rupees != null ? toPaise(rupees) : result.total;
     this.saving.set(true);
     try {
       await this.api.createTransaction({
@@ -120,10 +125,10 @@ export class ScanReceiptComponent {
         amount: -Math.abs(totalPaise),
         lineItems: result.lineItems,
       });
-      this.toast.show('Receipt saved to transactions');
+      this.toast.show(COPY.scanReceipt.toastSaved);
       void this.router.navigateByUrl('/transactions');
     } catch (err) {
-      this.toast.show(this.errorMessage(err));
+      this.toast.show(errorMessage(err));
     } finally {
       this.saving.set(false);
     }
@@ -143,25 +148,5 @@ export class ScanReceiptComponent {
 
   onTotalInput(event: Event): void {
     this.totalRupees.set((event.target as HTMLInputElement).value);
-  }
-
-  /** yyyy-mm-dd → "Jun 24" */
-  shortDate(iso: string): string {
-    const parsed = new Date(`${iso}T00:00:00`);
-    if (Number.isNaN(parsed.getTime())) return iso;
-    return parsed.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-  }
-
-  private paiseToRupees(paise: number): string {
-    const abs = Math.abs(paise);
-    return abs % 100 ? (abs / 100).toFixed(2) : String(abs / 100);
-  }
-
-  private errorMessage(err: unknown): string {
-    if (err instanceof HttpErrorResponse) {
-      const message = (err.error as ApiError | null)?.error?.message;
-      if (message) return message;
-    }
-    return 'Something went wrong. Please try again.';
   }
 }

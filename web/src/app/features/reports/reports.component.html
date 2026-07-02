@@ -1,9 +1,9 @@
 <div class="page sw-rise">
   <!-- generator -->
   <section class="sw-card gen">
-    <h2 class="gen-title">Generate a report</h2>
+    <h2 class="gen-title">{{ copy.reports.generateReport }}</h2>
 
-    <span class="sw-label">Date range</span>
+    <span class="sw-label">{{ copy.reports.dateRange }}</span>
     <div class="pills">
       @for (p of presets; track p.id) {
         <button type="button" class="pill" [class.selected]="range() === p.id" (click)="range.set(p.id)">
@@ -12,7 +12,7 @@
       }
     </div>
 
-    <span class="sw-label">Format</span>
+    <span class="sw-label">{{ copy.reports.format }}</span>
     <div class="formats">
       @for (f of formats; track f.id) {
         <button type="button" class="fmt" [class.selected]="format() === f.id" (click)="format.set(f.id)">
@@ -25,7 +25,7 @@
       }
     </div>
 
-    <span class="sw-label">Include</span>
+    <span class="sw-label">{{ copy.reports.include }}</span>
     <div class="includes">
       @for (item of includeOptions; track item) {
         <button type="button" class="inc-row" (click)="toggleInclude(item)">
@@ -41,34 +41,34 @@
 
     <button type="button" class="sw-btn-primary export-btn" [disabled]="exporting()" (click)="exportReport()">
       <sw-icon name="download" [size]="17" />
-      Export {{ format() === 'pdf' ? 'PDF' : 'CSV' }}
+      {{ copy.reports.exportBtn(format() === 'pdf' ? 'PDF' : 'CSV') }}
     </button>
   </section>
 
   <!-- right column -->
   <div class="side">
     <section class="sw-card summary">
-      <div class="card-title">Summary</div>
+      <div class="card-title">{{ copy.reports.summary }}</div>
       <div class="card-sub">{{ rangeLabel() }}</div>
       @if (summary(); as s) {
         <div class="row">
-          <span class="row-label">Income</span>
+          <span class="row-label">{{ copy.reports.incomeRow }}</span>
           <span class="row-val sw-money income">{{ s.income | swMoney: 'abs' }}</span>
         </div>
         <div class="row">
-          <span class="row-label">Expenses</span>
+          <span class="row-label">{{ copy.reports.expensesRow }}</span>
           <span class="row-val sw-money expense">{{ s.expense | swMoney: 'abs' }}</span>
         </div>
         <div class="row net">
-          <span class="row-label bold">Net saved</span>
+          <span class="row-label bold">{{ copy.reports.netSavedRow }}</span>
           <span class="row-val sw-money saved">{{ s.savings | swMoney }}</span>
         </div>
         <div class="row muted">
-          <span>Transactions</span>
+          <span>{{ copy.reports.transactionsRow }}</span>
           <span>{{ s.transactionCount }}</span>
         </div>
         <div class="row muted">
-          <span>Top category</span>
+          <span>{{ copy.reports.topCategoryRow }}</span>
           @if (s.topCategory; as top) {
             <span>{{ top.name }} · {{ top.spent | swMoney: 'abs' }}</span>
           } @else {
@@ -79,9 +79,9 @@
     </section>
 
     <section class="sw-card exports">
-      <div class="card-title">Recent exports</div>
+      <div class="card-title">{{ copy.reports.recentExports }}</div>
       @if (history().length === 0) {
-        <div class="empty-hint">No exports yet</div>
+        <div class="empty-hint">{{ copy.reports.noExports }}</div>
       } @else {
         @for (item of history(); track item.id) {
           <div class="hist-row">
@@ -92,7 +92,7 @@
               <div class="hist-name">{{ item.name }}</div>
               <div class="hist-sub">{{ item.createdAt | date: 'MMM d' }} · {{ item.size }}</div>
             </div>
-            <button type="button" class="hist-dl" (click)="historyRowClick()" aria-label="Download">
+            <button type="button" class="hist-dl" (click)="historyRowClick()" [attr.aria-label]="copy.reports.downloadAria">
               <sw-icon name="download" [size]="15" />
             </button>
           </div>

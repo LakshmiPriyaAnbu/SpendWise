@@ -56,18 +56,18 @@
   &.watch {
     background: var(--sw-warn-bg);
     border-color: var(--sw-warn-border);
-    --ins-chip-bg: #f7d9a8;
-    --ins-chip-color: #8a5a12;
-    --ins-title: #8a5a12;
-    --ins-desc: #a5762f;
+    --ins-chip-bg: var(--sw-peach);
+    --ins-chip-color: var(--sw-warn-text);
+    --ins-title: var(--sw-warn-text);
+    --ins-desc: var(--sw-warn-mid);
   }
   &.alert {
     background: var(--sw-danger-bg);
     border-color: var(--sw-danger-border);
-    --ins-chip-bg: #f2c9c2;
-    --ins-chip-color: #a13d2f;
-    --ins-title: #a13d2f;
-    --ins-desc: #b6604f;
+    --ins-chip-bg: var(--sw-danger-border);
+    --ins-chip-color: var(--sw-rose);
+    --ins-title: var(--sw-rose);
+    --ins-desc: var(--sw-rose-alt);
   }
   &.great {
     background: var(--sw-success-panel);
@@ -75,7 +75,7 @@
     --ins-chip-bg: var(--sw-success-border);
     --ins-chip-color: var(--sw-success-dark);
     --ins-title: var(--sw-success-dark);
-    --ins-desc: #3a6b5c;
+    --ins-desc: var(--sw-caption-text);
   }
 }
 .insight-head {
@@ -246,10 +246,10 @@
   transition: width 0.3s ease;
 
   &.income {
-    background: linear-gradient(90deg, #18b184, #0e7c66);
+    background: var(--sw-gradient-h);
   }
   &.expense {
-    background: linear-gradient(90deg, #e0912b, #d9822b);
+    background: var(--sw-gradient-h-warn);
   }
 }
 .net-row {
@@ -307,8 +307,8 @@
 .subs-chip {
   font-size: 12px;
   font-weight: 700;
-  color: #7568c4;
-  background: #eae7fa;
+  color: var(--sw-purple);
+  background: var(--sw-purple-bg);
   padding: 4px 10px;
   border-radius: 99px;
 }
@@ -330,8 +330,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #eae7fa;
-  color: #7568c4;
+  background: var(--sw-purple-bg);
+  color: var(--sw-purple);
 }
 .subs-name {
   font-size: 13.5px;
@@ -355,7 +355,7 @@
 .spinner {
   width: 26px;
   height: 26px;
-  border: 3px solid #d7ede4;
+  border: 3px solid var(--sw-success-border-alt);
   border-top-color: var(--sw-primary);
   border-radius: 50%;
   animation: swspin 0.8s linear infinite;

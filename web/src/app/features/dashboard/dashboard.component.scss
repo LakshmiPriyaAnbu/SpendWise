@@ -16,7 +16,7 @@
   display: flex;
   align-items: center;
   gap: 2px;
-  background: #fff;
+  background: var(--sw-white);
   border: 1px solid var(--sw-border-alt);
   border-radius: 12px;
   padding: 4px;
@@ -93,9 +93,9 @@
 }
 
 .hero {
-  background: linear-gradient(155deg, #0e7c66, #0a5f4e);
+  background: var(--sw-gradient-hero);
   border-radius: 20px;
-  color: #fff;
+  color: var(--sw-white);
   position: relative;
   overflow: hidden;
 }
@@ -109,7 +109,7 @@
   background: rgba(255, 255, 255, 0.07);
 }
 .hero-head {
-  color: #bfe6da;
+  color: var(--sw-mint-band);
 }
 .hero-amt {
   font-size: 29px;
@@ -121,7 +121,7 @@
   gap: 5px;
   font-size: 12px;
   margin-top: 8px;
-  color: #bfe6da;
+  color: var(--sw-mint-band);
 }
 .hero-badge {
   display: flex;
@@ -143,7 +143,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  background: #fff;
+  background: var(--sw-white);
   border: 1px solid var(--sw-border);
   border-radius: 16px;
   padding: 15px;
@@ -332,8 +332,8 @@
     height: 42px;
     border-radius: 12px;
     flex: none;
-    background: #f7d9a8;
-    color: #b9701a;
+    background: var(--sw-peach);
+    color: var(--sw-amber-text);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -356,7 +356,7 @@
     font-size: 12.5px;
     font-weight: 700;
     color: var(--sw-warn-text);
-    background: #f7d9a8;
+    background: var(--sw-peach);
     border: none;
     padding: 8px 14px;
     border-radius: 10px;
@@ -376,7 +376,7 @@
       color: var(--sw-success-dark);
     }
     .insight-desc {
-      color: #3a6b5c;
+      color: var(--sw-caption-text);
     }
     .insight-btn {
       background: var(--sw-success-border);
@@ -457,7 +457,7 @@
 .spinner {
   width: 26px;
   height: 26px;
-  border: 3px solid #d7ede4;
+  border: 3px solid var(--sw-success-border-alt);
   border-top-color: var(--sw-primary);
   border-radius: 50%;
   animation: swspin 0.8s linear infinite;

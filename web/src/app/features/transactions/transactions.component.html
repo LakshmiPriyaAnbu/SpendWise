@@ -6,16 +6,16 @@
         type="text"
         [value]="searchText()"
         (input)="onSearch($event)"
-        placeholder="Search by merchant…"
+        [placeholder]="copy.transactions.searchPlaceholder"
       />
     </div>
     <sw-segmented-tabs [tabs]="tabs" [selected]="tab()" (selectedChange)="setTab($event)" />
     <div class="month">
-      <button type="button" class="chev" aria-label="Previous month" (click)="month.shift(-1)">
+      <button type="button" class="chev" [attr.aria-label]="copy.common.previousMonth" (click)="month.shift(-1)">
         <sw-icon name="chevL" [size]="15" />
       </button>
       <span class="label"><sw-icon name="calendar" [size]="15" />{{ month.label() }}</span>
-      <button type="button" class="chev" aria-label="Next month" (click)="month.shift(1)">
+      <button type="button" class="chev" [attr.aria-label]="copy.common.nextMonth" (click)="month.shift(1)">
         <sw-icon name="chevR" [size]="15" />
       </button>
     </div>
@@ -23,10 +23,10 @@
 
   <div class="table sw-card">
     <div class="thead">
-      <div>Merchant</div>
-      <div>Category</div>
-      <div>Date</div>
-      <div class="right">Amount</div>
+      <div>{{ copy.transactions.tableHeaders.merchant }}</div>
+      <div>{{ copy.transactions.tableHeaders.category }}</div>
+      <div>{{ copy.transactions.tableHeaders.date }}</div>
+      <div class="right">{{ copy.transactions.tableHeaders.amount }}</div>
       <div></div>
     </div>
 
@@ -77,24 +77,28 @@
         </div>
         <div class="actions">
           @if (editingId() === t.id) {
-            <button type="button" class="act save" aria-label="Save" (click)="saveEdit(t)">
+            <button type="button" class="act save" [attr.aria-label]="copy.common.save" (click)="saveEdit(t)">
               <sw-icon name="checkPlain" [size]="15" [strokeWidth]="2.2" />
             </button>
-            <button type="button" class="act" aria-label="Cancel" (click)="cancelEdit()">
+            <button type="button" class="act" [attr.aria-label]="copy.common.cancel" (click)="cancelEdit()">
               <sw-icon name="x" [size]="14" />
             </button>
           } @else {
-            <button type="button" class="act edit" aria-label="Edit" (click)="startEdit(t)">
+            <button type="button" class="act edit" [attr.aria-label]="copy.common.edit" (click)="startEdit(t)">
               <sw-icon name="edit" [size]="15" />
             </button>
-            <button type="button" class="act trash" aria-label="Delete" (click)="remove(t)">
+            <button type="button" class="act trash" [attr.aria-label]="copy.common.delete" (click)="remove(t)">
               <sw-icon name="trash" [size]="15" />
             </button>
           }
         </div>
       </div>
     } @empty {
-      <sw-empty-state icon="search" title="No matches" hint="Try a different search or filter." />
+      <sw-empty-state
+        icon="search"
+        [title]="copy.transactions.noMatchesTitle"
+        [hint]="copy.transactions.noMatchesHint"
+      />
     }
   </div>
 </div>

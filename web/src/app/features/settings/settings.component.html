@@ -7,33 +7,33 @@
         <div class="name">{{ user()?.name }}</div>
         <div class="meta">
           <span>{{ user()?.email }}</span>
-          <span class="plan-chip">{{ user()?.plan || 'Free' }} plan</span>
+          <span class="plan-chip">{{ user()?.plan || copy.settings.freePlanFallback }} {{ copy.settings.planSuffix }}</span>
         </div>
       </div>
-      <button type="button" class="sw-btn-secondary" style="height: 40px">Edit profile</button>
+      <button type="button" class="sw-btn-secondary" style="height: 40px">{{ copy.settings.editProfile }}</button>
     </div>
 
     <!-- Preferences -->
     <div class="sw-card section">
-      <div class="section-title">Preferences</div>
+      <div class="section-title">{{ copy.settings.preferences }}</div>
       <div class="row">
         <div class="row-text">
-          <div class="row-label">Currency</div>
-          <div class="row-sub">Used across the app</div>
+          <div class="row-label">{{ copy.settings.currency }}</div>
+          <div class="row-sub">{{ copy.settings.currencySub }}</div>
         </div>
-        <div class="row-value">Indian Rupee (₹)</div>
+        <div class="row-value">{{ copy.settings.currencyValue }}</div>
       </div>
       <div class="row">
         <div class="row-text">
-          <div class="row-label">Budget reset day</div>
-          <div class="row-sub">When your monthly budget restarts</div>
+          <div class="row-label">{{ copy.settings.budgetResetDay }}</div>
+          <div class="row-sub">{{ copy.settings.budgetResetSub }}</div>
         </div>
-        <div class="row-value">1st of month</div>
+        <div class="row-value">{{ copy.settings.budgetResetValue }}</div>
       </div>
       <div class="row">
         <div class="row-text">
-          <div class="row-label">Theme</div>
-          <div class="row-sub">App appearance</div>
+          <div class="row-label">{{ copy.settings.theme }}</div>
+          <div class="row-sub">{{ copy.settings.themeSub }}</div>
         </div>
         <sw-segmented-tabs [tabs]="themeTabs" [selected]="s.theme" (selectedChange)="setTheme($event)" />
       </div>
@@ -41,7 +41,7 @@
 
     <!-- Privacy & Security -->
     <div class="sw-card section">
-      <div class="section-title">Privacy &amp; Security</div>
+      <div class="section-title">{{ copy.settings.privacySecurity }}</div>
       @for (row of toggleRows; track row.key) {
         <div class="row">
           <div class="row-text">
@@ -65,24 +65,24 @@
 
     <!-- Data -->
     <div class="sw-card section">
-      <div class="section-title">Data</div>
+      <div class="section-title">{{ copy.settings.data }}</div>
       <div class="row data-row">
         <span class="data-icon export"><sw-icon name="download" [size]="17" /></span>
         <div class="row-text">
-          <div class="row-label">Export all data</div>
-          <div class="row-sub">Download everything as CSV</div>
+          <div class="row-label">{{ copy.settings.exportAllData }}</div>
+          <div class="row-sub">{{ copy.settings.exportAllDataSub }}</div>
         </div>
         <button type="button" class="sw-btn-secondary" style="height: 40px" [disabled]="exporting()" (click)="exportData()">
-          {{ exporting() ? 'Exporting…' : 'Export all data' }}
+          {{ exporting() ? copy.settings.exporting : copy.settings.exportAllData }}
         </button>
       </div>
       <div class="row data-row">
         <span class="data-icon danger"><sw-icon name="trash" [size]="17" /></span>
         <div class="row-text">
-          <div class="row-label danger-text">Delete account</div>
-          <div class="row-sub">Permanently erase your data</div>
+          <div class="row-label danger-text">{{ copy.settings.deleteAccount }}</div>
+          <div class="row-sub">{{ copy.settings.deleteAccountSub }}</div>
         </div>
-        <button type="button" class="btn-danger" (click)="deleteAccount()">Delete account</button>
+        <button type="button" class="btn-danger" (click)="deleteAccount()">{{ copy.settings.deleteAccount }}</button>
       </div>
     </div>
   </div>

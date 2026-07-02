@@ -12,19 +12,19 @@
         <span class="donut-label">{{ s.budgetPct }}%</span>
       </div>
       <div class="hero-text">
-        <div class="hero-kicker">Monthly budget · {{ monthSvc.label() }}</div>
+        <div class="hero-kicker">{{ copy.budgets.heroKickerPrefix }} {{ monthSvc.label() }}</div>
         <div class="hero-amount sw-money">
           {{ s.expense | swMoney: 'abs' }}
-          <span class="of">of {{ s.budgetTotal | swMoney: 'abs' }}</span>
+          <span class="of">{{ copy.budgets.of }} {{ s.budgetTotal | swMoney: 'abs' }}</span>
         </div>
-        <div class="hero-sub">{{ s.budgetLeft | swMoney: 'abs' }} left to spend · resets on the 1st</div>
+        <div class="hero-sub">{{ s.budgetLeft | swMoney: 'abs' }} {{ copy.budgets.heroSubSuffix }}</div>
       </div>
-      <button type="button" class="hero-edit" (click)="toggleEdit()">Edit budgets</button>
+      <button type="button" class="hero-edit" (click)="toggleEdit()">{{ copy.budgets.editBudgets }}</button>
     </section>
 
     @if (s.budgetUsage.length === 0) {
       <div class="sw-card">
-        <sw-empty-state icon="budget" title="No budgets yet" hint="Set a monthly limit per category to start tracking." />
+        <sw-empty-state icon="budget" [title]="copy.budgets.emptyTitle" [hint]="copy.budgets.emptyHint" />
       </div>
     } @else {
       <div class="grid">
@@ -37,7 +37,7 @@
               <div class="b-info">
                 <div class="b-name">{{ u.category.name }}</div>
                 <div class="b-sub">
-                  <span>{{ u.spent | swMoney: 'abs' }} of</span>
+                  <span>{{ u.spent | swMoney: 'abs' }} {{ copy.budgets.of }}</span>
                   @if (editing()) {
                     <input
                       type="number"
@@ -55,11 +55,11 @@
             </div>
             <sw-progress-bar [pct]="u.pct" [height]="8" [color]="barColor(u.status)" />
             <div class="b-foot">
-              <span class="pct-label" [style.color]="statusColor(u.status)">{{ u.pct }}% used</span>
+              <span class="pct-label" [style.color]="statusColor(u.status)">{{ u.pct }}% {{ copy.budgets.pctUsedSuffix }}</span>
               @if (remaining(u.spent, u.budget) >= 0) {
-                <span class="remain">{{ remaining(u.spent, u.budget) | swMoney: 'abs' }} left</span>
+                <span class="remain">{{ remaining(u.spent, u.budget) | swMoney: 'abs' }} {{ copy.budgets.leftSuffix }}</span>
               } @else {
-                <span class="remain over">Over by {{ remaining(u.spent, u.budget) | swMoney: 'abs' }}</span>
+                <span class="remain over">{{ copy.budgets.overByPrefix }} {{ remaining(u.spent, u.budget) | swMoney: 'abs' }}</span>
               }
             </div>
           </article>
@@ -69,8 +69,8 @@
 
     @if (editing()) {
       <div class="edit-bar">
-        <button type="button" class="sw-btn-secondary" (click)="cancelEdit()">Cancel</button>
-        <button type="button" class="sw-btn-primary" [disabled]="saving()" (click)="save()">Save budgets</button>
+        <button type="button" class="sw-btn-secondary" (click)="cancelEdit()">{{ copy.common.cancel }}</button>
+        <button type="button" class="sw-btn-primary" [disabled]="saving()" (click)="save()">{{ copy.budgets.saveBudgets }}</button>
       </div>
     }
   }

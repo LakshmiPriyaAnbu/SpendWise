@@ -42,9 +42,9 @@
 .drop-zone {
   flex: 1;
   flex-direction: column;
-  border: 2px dashed #cdd9d3;
+  border: 2px dashed var(--sw-border-dashed);
   border-radius: 16px;
-  background: #f8faf9;
+  background: var(--sw-tint-bg);
   text-align: center;
   padding: 30px;
 }
@@ -53,8 +53,8 @@
   width: 64px;
   height: 64px;
   border-radius: 18px;
-  background: #e6eef6;
-  color: #2c6e9b;
+  background: var(--sw-info-bg);
+  color: var(--sw-info);
   margin-bottom: 16px;
 }
 
@@ -91,9 +91,9 @@
   position: relative;
   overflow: hidden;
   width: 230px;
-  background: #fff;
+  background: var(--sw-white);
   border-radius: 8px;
-  box-shadow: 0 14px 40px rgba(24, 36, 32, 0.16);
+  box-shadow: var(--sw-shadow-receipt);
   padding: 20px 20px 26px;
   font-family: var(--sw-font-num);
 }
@@ -172,8 +172,8 @@
   width: 56px;
   height: 56px;
   border-radius: 16px;
-  background: #f2f5f3;
-  color: #b6c2bc;
+  background: var(--sw-muted-icon-bg);
+  color: var(--sw-icon-muted);
   margin-bottom: 14px;
 }
 
@@ -201,7 +201,7 @@
 .spinner {
   width: 22px;
   height: 22px;
-  border: 2.5px solid #d7ede4;
+  border: 2.5px solid var(--sw-success-border-alt);
   border-top-color: var(--sw-primary);
   border-radius: 50%;
   animation: swspin 0.8s linear infinite;
@@ -276,7 +276,7 @@
   font-weight: 600;
   width: 100%;
   outline: none;
-  background: #fff;
+  background: var(--sw-white);
 }
 
 .total-input {
@@ -287,7 +287,7 @@
 }
 
 .cat-select {
-  border: 1px solid #e0e8e4;
+  border: 1px solid var(--sw-border-soft);
   font-size: 13.5px;
   color: var(--sw-text);
   cursor: pointer;
@@ -304,7 +304,7 @@
 }
 
 .line-items {
-  border: 1px solid #eef2f0;
+  border: 1px solid var(--sw-track);
   border-radius: 11px;
   overflow: hidden;
 }
@@ -312,7 +312,7 @@
 .li-row {
   padding: 8px 13px;
   font-size: 13px;
-  border-bottom: 1px solid #f3f6f4;
+  border-bottom: 1px solid var(--sw-line-soft);
 
   &:last-child {
     border-bottom: none;
@@ -342,7 +342,7 @@
   line-height: 1.5;
 
   sw-icon {
-    color: #b9701a;
+    color: var(--sw-amber-text);
     flex: none;
     margin-top: 1px;
   }

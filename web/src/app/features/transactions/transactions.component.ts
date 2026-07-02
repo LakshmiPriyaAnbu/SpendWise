@@ -5,22 +5,14 @@ import { ApiService } from '../../core/api.service';
 import { MoneyPipe } from '../../core/money.pipe';
 import { MonthService } from '../../core/month.service';
 import { ToastService } from '../../core/toast.service';
+import { COPY } from '../../core/copy';
+import { shortDate } from '../../core/date.util';
+import { toPaise, parsePositiveRupees } from '../../core/money.util';
+import { FALLBACK_CATEGORY } from '../../core/category.util';
 import { SwCategoryChip } from '../../shared/ui/category-chip.component';
 import { SwEmptyState } from '../../shared/ui/empty-state.component';
 import { SwIcon } from '../../shared/ui/icon.component';
 import { SwSegmentedTabs, type SegTab } from '../../shared/ui/segmented-tabs.component';
-
-const MONTHS_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-
-const FALLBACK_CATEGORY: Category = {
-  id: '',
-  key: 'other',
-  name: 'Other',
-  color: '#8A9691',
-  bg: '#f2f5f3',
-  icon: 'other',
-  isCustom: false,
-};
 
 @Component({
   selector: 'sw-transactions',
@@ -35,10 +27,13 @@ export class TransactionsComponent {
   private route = inject(ActivatedRoute);
   readonly month = inject(MonthService);
 
+  protected readonly copy = COPY;
+  protected readonly shortDate = shortDate;
+
   readonly tabs: SegTab[] = [
-    { id: 'all', label: 'All' },
-    { id: 'income', label: 'Income' },
-    { id: 'expense', label: 'Expenses' },
+    { id: 'all', label: COPY.transactions.tabs.all },
+    { id: 'income', label: COPY.transactions.tabs.income },
+    { id: 'expense', label: COPY.transactions.tabs.expenses },
   ];
 
   readonly searchText = signal(this.route.snapshot.queryParamMap.get('q') ?? '');
@@ -91,11 +86,6 @@ export class TransactionsComponent {
     return this.categoryMap().get(categoryId) ?? FALLBACK_CATEGORY;
   }
 
-  shortDate(iso: string): string {
-    const [, m, d] = iso.split('-').map(Number);
-    return `${MONTHS_SHORT[(m ?? 1) - 1]} ${d ?? 1}`;
-  }
-
   startEdit(tx: Transaction): void {
     this.editingId.set(tx.id);
     this.editMerchant.set(tx.merchant);
@@ -117,35 +107,35 @@ export class TransactionsComponent {
 
   async saveEdit(tx: Transaction): Promise<void> {
     const merchant = this.editMerchant().trim();
-    const rupees = parseFloat(this.editAmount());
     if (!merchant) {
-      this.toast.show('Merchant cannot be empty');
+      this.toast.show(COPY.transactions.toasts.merchantEmpty);
       return;
     }
-    if (!(rupees > 0)) {
-      this.toast.show('Enter a valid amount');
+    const rupees = parsePositiveRupees(this.editAmount());
+    if (rupees == null) {
+      this.toast.show(COPY.transactions.toasts.invalidAmount);
       return;
     }
-    const paise = Math.round(rupees * 100);
+    const paise = toPaise(rupees);
     const amount = tx.amount < 0 ? -paise : paise;
     try {
       const updated = await this.api.updateTransaction(tx.id, { merchant, amount });
       this.transactions.update((list) => list.map((t) => (t.id === tx.id ? updated : t)));
       this.editingId.set(null);
-      this.toast.show('Transaction updated');
+      this.toast.show(COPY.transactions.toasts.updated);
     } catch {
-      this.toast.show('Could not update transaction');
+      this.toast.show(COPY.transactions.toasts.couldNotUpdate);
     }
   }
 
   async remove(tx: Transaction): Promise<void> {
-    if (!confirm(`Delete "${tx.merchant}"? This can't be undone.`)) return;
+    if (!confirm(COPY.transactions.deleteConfirm(tx.merchant))) return;
     try {
       await this.api.deleteTransaction(tx.id);
       this.transactions.update((list) => list.filter((t) => t.id !== tx.id));
-      this.toast.show('Transaction deleted');
+      this.toast.show(COPY.transactions.toasts.deleted);
     } catch {
-      this.toast.show('Could not delete transaction');
+      this.toast.show(COPY.transactions.toasts.couldNotDelete);
     }
   }
 }

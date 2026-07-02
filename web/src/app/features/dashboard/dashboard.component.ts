@@ -3,16 +3,16 @@ import { RouterLink } from '@angular/router';
 import type { AnalyticsSummary, BudgetUsage, Category, Insight } from '@spendwise/shared';
 import { ApiService } from '../../core/api.service';
 import { AuthService } from '../../core/auth.service';
+import { budgetStatusColor } from '../../core/budget-status.util';
+import { FALLBACK_CATEGORY } from '../../core/category.util';
+import { COPY } from '../../core/copy';
+import { shortDate } from '../../core/date.util';
 import { MoneyPipe } from '../../core/money.pipe';
 import { MonthService } from '../../core/month.service';
 import { SwDonutChart } from '../../shared/ui/donut-chart.component';
 import { SwEmptyState } from '../../shared/ui/empty-state.component';
 import { SwIcon } from '../../shared/ui/icon.component';
 import { SwProgressBar } from '../../shared/ui/progress-bar.component';
-
-const MONTHS_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-
-const FALLBACK_CAT = { name: 'Other', icon: 'other', color: '#8A9691', bg: '#f2f5f3' };
 
 interface QuickAction {
   title: string;
@@ -42,14 +42,17 @@ export class DashboardComponent {
   private money = new MoneyPipe();
   readonly monthSvc = inject(MonthService);
 
+  protected readonly copy = COPY;
+  protected readonly shortDate = shortDate;
+
   readonly summary = signal<AnalyticsSummary | null>(null);
   private readonly catMap = signal<Map<string, Category>>(new Map());
 
   readonly quickActions: QuickAction[] = [
-    { title: 'Add Expense', sub: 'Log it in seconds', icon: 'add', bg: 'var(--sw-success-bg)', color: 'var(--sw-primary)', link: '/add' },
-    { title: 'Scan Receipt', sub: 'Auto-read totals', icon: 'camera', bg: '#e6eef6', color: '#2C6E9B', link: '/scan' },
-    { title: 'Import Statement', sub: 'CSV from your bank', icon: 'cloud', bg: '#eae7fa', color: '#7568C4', link: '/import' },
-    { title: 'View Report', sub: 'Monthly summary', icon: 'reports', bg: '#fbeee0', color: '#D98A2B', link: '/reports' },
+    { ...COPY.dashboard.quickActions.addExpense, icon: 'add', bg: 'var(--sw-success-bg)', color: 'var(--sw-primary)', link: '/add' },
+    { ...COPY.dashboard.quickActions.scanReceipt, icon: 'camera', bg: 'var(--sw-info-bg)', color: 'var(--sw-info)', link: '/scan' },
+    { ...COPY.dashboard.quickActions.importStatement, icon: 'cloud', bg: 'var(--sw-purple-bg)', color: 'var(--sw-purple)', link: '/import' },
+    { ...COPY.dashboard.quickActions.viewReport, icon: 'reports', bg: 'var(--sw-warn-bg-alt)', color: 'var(--sw-warn)', link: '/reports' },
   ];
 
   readonly firstName = computed(() => this.auth.user()?.name.split(' ')[0] ?? 'there');
@@ -73,12 +76,20 @@ export class DashboardComponent {
       .slice(0, 3)
       .map((u) => {
         if (u.status === 'over') {
-          return { usage: u, label: `Over by ${this.money.transform(u.spent - u.budget, 'abs')}`, color: '#d9503f' };
+          return {
+            usage: u,
+            label: `${COPY.budgets.overByPrefix} ${this.money.transform(u.spent - u.budget, 'abs')}`,
+            color: budgetStatusColor(u.status),
+          };
         }
         if (u.status === 'close') {
-          return { usage: u, label: 'Close', color: '#d9822b' };
+          return { usage: u, label: COPY.budgets.status.close, color: budgetStatusColor(u.status) };
         }
-        return { usage: u, label: `${this.money.transform(u.budget - u.spent, 'abs')} left`, color: '#16a06a' };
+        return {
+          usage: u,
+          label: `${this.money.transform(u.budget - u.spent, 'abs')} ${COPY.budgets.leftSuffix}`,
+          color: budgetStatusColor(u.status),
+        };
       });
   });
 
@@ -95,11 +106,6 @@ export class DashboardComponent {
   }
 
   catFor(categoryId: string): { name: string; icon: string; color: string; bg: string } {
-    return this.catMap().get(categoryId) ?? FALLBACK_CAT;
-  }
-
-  fmtDate(iso: string): string {
-    const [, m, d] = iso.split('-').map(Number);
-    return `${MONTHS_SHORT[m - 1]} ${d}`;
+    return this.catMap().get(categoryId) ?? FALLBACK_CATEGORY;
   }
 }
